@@ -1,14 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
+using System.Globalization;
 
 public class PlayerHealthUI : MonoBehaviour
 {
-    public PlayerHealth playerHealth;      // Drag reference to PlayerHealth
-    public Image healthFillImage;          // Drag HealthBarFill here
+    public Image healthFillImage;
+
+    private PlayerHealth playerHealth;
+
+    public void SetPlayerHealth(PlayerHealth health)
+    {
+        playerHealth = health;
+    }
 
     void Update()
     {
-        float healthPercent = playerHealth.CurrentHealth / playerHealth.maxHealth;
+        if (playerHealth == null) return;
+
+        float healthPercent = playerHealth.HEALTH.Value / playerHealth.maxHealth;
         healthFillImage.fillAmount = Mathf.Clamp01(healthPercent);
     }
 }

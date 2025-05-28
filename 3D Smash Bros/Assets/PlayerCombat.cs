@@ -1,28 +1,52 @@
 using TMPro;
 using UnityEngine;
+using Unity.Netcode;
 
-public class PlayerCombat : MonoBehaviour
+public class PlayerCombat : NetworkBehaviour
 {
-    public float percent = 0f;
+    public NetworkVariable<float> percent = new NetworkVariable<float>(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
     private Rigidbody rb;
-    [SerializeField] private TextMeshProUGUI percentText; // H?zd be az Inspectorban
+    private TextMeshProUGUI percentText;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        UpdatePercentUI();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
+        {
+            percentText = GameObject.Find("Knockback Multiplier Text")?.GetComponent<TextMeshProUGUI>();
+
+            if (percentText == null)
+            {
+                Debug.LogWarning("PercentText UI elem nem található!");
+            }
+            else
+            {
+                UpdatePercentUI();
+            }
+        }
+
+        percent.OnValueChanged += OnPercentChanged;
     }
 
     public void TakeDamage(float amount, Vector3 knockback)
     {
-        percent += amount;
+        if (!IsOwner) return;
 
-        // Scale knockback by damage percentage
-        float totalKnockback = knockback.magnitude + (percent * 0.1f);
+        percent.Value += amount;
+
+        float totalKnockback = knockback.magnitude + (percent.Value * 0.1f);
         Vector3 finalForce = knockback.normalized * totalKnockback;
 
-        // Apply knockback
-        rb.linearVelocity = Vector3.zero; // Reset for consistency
+        rb.linearVelocity = Vector3.zero; // 'linearVelocity' nem létezik Unity-ben, 'velocity' a helyes
         rb.AddForce(finalForce, ForceMode.VelocityChange);
 
         UpdatePercentUI();
@@ -30,7 +54,14 @@ public class PlayerCombat : MonoBehaviour
 
     private void UpdatePercentUI()
     {
-        Debug.Log(percent);
-        percentText.text = Mathf.RoundToInt(percent) + "%";
+        if (percentText != null)
+        {
+            percentText.text = Mathf.RoundToInt(percent.Value) + "%";
+        }
+    }
+
+    private void OnPercentChanged(float oldValue, float newValue)
+    {
+        UpdatePercentUI();
     }
 }

@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Movement : MonoBehaviour
+public class Movement : NetworkBehaviour
 {
     [SerializeField]
     private float speed = 5.0f;
@@ -24,17 +25,30 @@ public class Movement : MonoBehaviour
     private Rigidbody rb;
     private Vector3 moveInput;
     private bool isGrounded = false;
+    Camera _camera;
 
-    void Start()
+    public override void OnNetworkSpawn()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
         rb = GetComponent<Rigidbody>();
+        _camera = GetComponentInChildren<Camera>();
+
+        if (!IsOwner)
+        {
+            _camera.enabled = false;
+           
+        }
     }
 	
     void Update()
-    {	
+    {
+        if (!IsOwner)
+        {
+            return;
+        }
+
 		if(rb.linearVelocity.magnitude < 2f){
 			rb.linearVelocity = Vector3.zero;
 		}

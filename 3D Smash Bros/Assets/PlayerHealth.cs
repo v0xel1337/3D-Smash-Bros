@@ -1,24 +1,40 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerHealth : MonoBehaviour
+public class PlayerHealth : NetworkBehaviour
 {
     public float maxHealth = 100f;
-    private float currentHealth;
-	public float CurrentHealth => currentHealth;
-	
-    void Start()
+
+    // NetworkVariable szinkronizálja a hálózaton a health értékét
+    public NetworkVariable<float> HEALTH = new NetworkVariable<float>(
+        100f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
+    public override void OnNetworkSpawn()
     {
-        currentHealth = maxHealth;
+        if (IsOwner)
+        {
+            var ui = FindObjectOfType<PlayerHealthUI>();
+            if (ui != null)
+            {
+                ui.SetPlayerHealth(this);
+            }
+        }
     }
 
     public void TakeDamage(float amount)
     {
-        currentHealth -= amount;
-		if (currentHealth > 100){
-			currentHealth = 100;
-		}
-		
-        if (currentHealth <= 0)
+        if (!IsOwner) return;
+
+        HEALTH.Value -= amount;
+        if (HEALTH.Value > maxHealth)
+        {
+            HEALTH.Value = maxHealth;
+        }
+
+        if (HEALTH.Value <= 0)
         {
             Die();
         }
@@ -27,7 +43,7 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         Debug.Log(name + " has died to the storm!");
-		Application.Quit();
-        Destroy(gameObject); // Or handle respawn/death here
+        // Ne használd Application.Quit multiplayerben!
+        Destroy(gameObject);
     }
 }
