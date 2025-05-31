@@ -26,7 +26,7 @@ public class Movement : NetworkBehaviour
     private Vector3 moveInput;
     private bool isGrounded = false;
     Camera _camera;
-
+    public Animator animator;
     public override void OnNetworkSpawn()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -67,8 +67,10 @@ public class Movement : NetworkBehaviour
 
         // Capture movement input relative to current orientation
         moveInput = Vector3.zero;
-		
-		if (Input.GetKey(KeyCode.LeftShift) /*&& notSlowed*/){
+
+
+
+        if (Input.GetKey(KeyCode.LeftShift) /*&& notSlowed*/){
 			speed = 10.0f;
 		} else {
 			speed = 5.0f;
@@ -82,8 +84,13 @@ public class Movement : NetworkBehaviour
             moveInput += transform.right;
         if (Input.GetKey(KeyCode.A))
             moveInput -= transform.right;
-		
-		// Grounded check
+
+        // ?? Animáció vezérlése
+        Debug.Log(moveInput.magnitude);
+        bool isWalking = moveInput.magnitude > 0.1f;
+        animator.SetBool("IsWalking", isWalking);
+
+        // Grounded check
         isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundMask);
 
         // Jump

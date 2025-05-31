@@ -21119,7 +21119,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 126dc28d93a9bf0459241ed7188e60fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerHealth: {fileID: 0}
   healthFillImage: {fileID: 6254404478103550537}
 --- !u!114 &1947581963
 MonoBehaviour:
