@@ -85,10 +85,22 @@ public class Movement : NetworkBehaviour
         if (Input.GetKey(KeyCode.A))
             moveInput -= transform.right;
 
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            animator.SetTrigger("Punch");
+        }
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            animator.SetTrigger("Roll");
+        }
+
         // ?? Animáció vezérlése
         Debug.Log(moveInput.magnitude);
         bool isWalking = moveInput.magnitude > 0.1f;
+        bool isRunning = isWalking && Input.GetKey(KeyCode.LeftShift);
+
         animator.SetBool("IsWalking", isWalking);
+        animator.SetBool("IsRunning", isRunning);
 
         // Grounded check
         isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundMask);
