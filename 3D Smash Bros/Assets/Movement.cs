@@ -17,7 +17,7 @@ public class Movement : NetworkBehaviour
    	[SerializeField] private float jumpForce = 700.0f;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundCheckDistance = 1.1f;
-
+    private bool isPunching = false;
 
     private float yaw = 0.0f;
     private float pitch = 0.0f;
@@ -85,10 +85,17 @@ public class Movement : NetworkBehaviour
         if (Input.GetKey(KeyCode.A))
             moveInput -= transform.right;
 
-        if (Input.GetKeyDown(KeyCode.V))
+        if (Input.GetKeyDown(KeyCode.V) && !isPunching)
         {
             animator.SetTrigger("Punch");
+            isPunching = true;
         }
+
+        if (isPunching)
+        {
+            moveInput = Vector3.zero;
+        }
+
         if (Input.GetKeyDown(KeyCode.Q))
         {
             animator.SetTrigger("Roll");
@@ -115,6 +122,11 @@ public class Movement : NetworkBehaviour
 		}
 		
         moveInput = moveInput.normalized;
+    }
+
+    public void EndPunch()
+    {
+        isPunching = false;
     }
 
     void FixedUpdate()
