@@ -96,9 +96,20 @@ public class Movement : NetworkBehaviour
             moveInput = Vector3.zero;
         }
 
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q) && !isPunching)
         {
             animator.SetTrigger("Roll");
+            isPunching = true;
+        }
+
+        if (isPunching && Input.GetKey(KeyCode.Q))
+        {
+            animator.SetBool("IsRolling", true);
+        }
+        else
+        {
+            animator.SetBool("IsRolling", false);
+            isPunching = false;
         }
 
         // ?? Animáció vezérlése
