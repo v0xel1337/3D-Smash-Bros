@@ -19,14 +19,14 @@ public class Movement : NetworkBehaviour
     [SerializeField] private float groundCheckDistance = 1.1f;
     private bool isPunching = false;
 
-    private float yaw = 0.0f;
-    private float pitch = 0.0f;
-
     private Rigidbody rb;
     private Vector3 moveInput;
     private bool isGrounded = false;
     Camera _camera;
     public Animator animator;
+
+    [SerializeField]
+    private float rotationSpeed = 300.0f; // új: forgási sebesség
     public override void OnNetworkSpawn()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -57,13 +57,6 @@ public class Movement : NetworkBehaviour
 			Application.Quit();	
 		}
 		
-        // Mouse rotation
-        yaw += speedH * Input.GetAxis("Mouse X");
-        pitch -= speedV * Input.GetAxis("Mouse Y");
-
-        pitch = Mathf.Clamp(pitch, -30f, 30f);
-
-        transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
 
         // Capture movement input relative to current orientation
         moveInput = Vector3.zero;
@@ -75,15 +68,17 @@ public class Movement : NetworkBehaviour
 		} else {
 			speed = 5.0f;
 		}
-		
+
         if (Input.GetKey(KeyCode.W))
-            moveInput += new Vector3( transform.forward.x, 0.0f, transform.forward.z);
+            moveInput += new Vector3(transform.forward.x, 0.0f, transform.forward.z);
         if (Input.GetKey(KeyCode.S))
-            moveInput -= new Vector3( transform.forward.x, 0.0f, transform.forward.z);
-        if (Input.GetKey(KeyCode.D))
-            moveInput += transform.right;
+            moveInput -= new Vector3(transform.forward.x, 0.0f, transform.forward.z);
+
+        // Forgás balra/jobbra (A / D)
         if (Input.GetKey(KeyCode.A))
-            moveInput -= transform.right;
+            transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
+        if (Input.GetKey(KeyCode.D))
+            transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
 
         if (Input.GetKeyDown(KeyCode.V) && !isPunching)
         {
