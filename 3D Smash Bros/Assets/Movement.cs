@@ -69,16 +69,22 @@ public class Movement : NetworkBehaviour
 			speed = 5.0f;
 		}
 
-        if (Input.GetKey(KeyCode.W))
-            moveInput += new Vector3(transform.forward.x, 0.0f, transform.forward.z);
-        if (Input.GetKey(KeyCode.S))
-            moveInput -= new Vector3(transform.forward.x, 0.0f, transform.forward.z);
+        if (!isPunching)
+        {
+            if (Input.GetKey(KeyCode.W))
+                moveInput += new Vector3(transform.forward.x, 0.0f, transform.forward.z);
+            if (Input.GetKey(KeyCode.S))
+                moveInput -= new Vector3(transform.forward.x, 0.0f, transform.forward.z);
 
-        // Forgás balra/jobbra (A / D)
-        if (Input.GetKey(KeyCode.A))
-            transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
-        if (Input.GetKey(KeyCode.D))
-            transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
+            // Forgás balra/jobbra (A / D)
+            if (Input.GetKey(KeyCode.A))
+                transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
+            if (Input.GetKey(KeyCode.D))
+                transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
+
+        }
+
+
 
         if (Input.GetKeyDown(KeyCode.V) && !isPunching)
         {
