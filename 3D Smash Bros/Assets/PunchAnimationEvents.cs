@@ -6,9 +6,11 @@ public class PunchAnimationEvents : MonoBehaviour
 
     public void EndPunch()
     {
-        if (movementScript != null)
-        {
-            movementScript.EndPunch();
-        }
+        movementScript.EndPunch();
+    }
+
+    public void GiveDamage()
+    {
+        movementScript.PerformPunchHit();
     }
 }

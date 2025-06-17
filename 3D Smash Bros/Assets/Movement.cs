@@ -17,7 +17,7 @@ public class Movement : NetworkBehaviour
    	[SerializeField] private float jumpForce = 700.0f;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundCheckDistance = 1.1f;
-    private bool isPunching = false;
+    public bool isPunching = false;
 
     private Rigidbody rb;
     private Vector3 moveInput;
@@ -103,14 +103,16 @@ public class Movement : NetworkBehaviour
             isPunching = true;
         }
 
-        if (isPunching && Input.GetKey(KeyCode.Q))
+        if (Input.GetKey(KeyCode.Q))
         {
             animator.SetBool("IsRolling", true);
         }
-        else
+
+        if (Input.GetKeyUp(KeyCode.Q))
         {
             animator.SetBool("IsRolling", false);
             isPunching = false;
+            Debug.Log("Q fel lett engedve, roll vége.");
         }
 
         // ?? Animáció vezérlése
@@ -146,5 +148,28 @@ public class Movement : NetworkBehaviour
         // Apply movement using Rigidbody
         Vector3 targetPosition = rb.position + moveInput * speed * Time.fixedDeltaTime;
         rb.MovePosition(targetPosition);
+    }
+
+    public void PerformPunchHit()
+    {
+        float punchRange = 2.0f; // Milyen messzire ér az ütés
+        float punchDamage = 10f;
+
+        if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, punchRange))
+        {
+            Debug.Log("Ütés eltalált valamit: " + hit.collider.name);
+
+            // Ha van rajta valami "damageable" script
+            var enemy = hit.collider.GetComponent<Movement>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(punchDamage);
+            }
+        }
+    }
+
+    public void TakeDamage(float damage)
+    {
+        animator.SetTrigger("GetHit");
     }
 }
