@@ -17,7 +17,6 @@ public class Movement : NetworkBehaviour
    	[SerializeField] private float jumpForce = 700.0f;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundCheckDistance = 1.1f;
-    public bool isPunching = false;
 
     private Rigidbody rb;
     private Vector3 moveInput;
@@ -69,7 +68,14 @@ public class Movement : NetworkBehaviour
 			speed = 5.0f;
 		}
 
-        if (!isPunching)
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (stateInfo.IsName("Punch") && stateInfo.normalizedTime < 1.0f)
+        {
+            // Ne csináljon semmit
+            moveInput = Vector3.zero;
+        }
+        else
         {
             if (Input.GetKey(KeyCode.W))
                 moveInput += new Vector3(transform.forward.x, 0.0f, transform.forward.z);
@@ -81,26 +87,25 @@ public class Movement : NetworkBehaviour
                 transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
             if (Input.GetKey(KeyCode.D))
                 transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
-
         }
 
 
 
-        if (Input.GetKeyDown(KeyCode.V) && !isPunching)
+        if (Input.GetKeyDown(KeyCode.V))
         {
-            animator.SetTrigger("Punch");
-            isPunching = true;
+            if (!(stateInfo.IsName("Punch") && stateInfo.normalizedTime < 1.0f))
+            {
+                animator.SetTrigger("Punch");
+            }
         }
 
-        if (isPunching)
+        // Ne engedje újraindítani a gurulást, ha még tart
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            moveInput = Vector3.zero;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Q) && !isPunching)
-        {
-            animator.SetTrigger("Roll");
-            isPunching = true;
+            if (!(stateInfo.IsName("Roll") && stateInfo.normalizedTime < 1.0f))
+            {
+                animator.SetTrigger("Roll");
+            }
         }
 
         if (Input.GetKey(KeyCode.Q))
@@ -111,7 +116,6 @@ public class Movement : NetworkBehaviour
         if (Input.GetKeyUp(KeyCode.Q))
         {
             animator.SetBool("IsRolling", false);
-            isPunching = false;
             Debug.Log("Q fel lett engedve, roll vége.");
         }
 
@@ -136,11 +140,6 @@ public class Movement : NetworkBehaviour
 		}
 		
         moveInput = moveInput.normalized;
-    }
-
-    public void EndPunch()
-    {
-        isPunching = false;
     }
 
     void FixedUpdate()
@@ -171,5 +170,21 @@ public class Movement : NetworkBehaviour
     public void TakeDamage(float damage)
     {
         animator.SetTrigger("GetHit");
+        Vector3 knockDir = -transform.forward; // játékos háta mögé
+
+        // Add vertical component
+        knockDir.y = 0.5f;
+        knockDir.Normalize();
+        rb.AddForce(knockDir * 10f, ForceMode.VelocityChange);
+    }
+
+    private void TakeDamageRepeat()
+    {
+        TakeDamage(1); // így az alapértelmezett 1f érték fog futni
+    }
+
+    public void Start() // TEST
+    {
+        //InvokeRepeating("TakeDamageRepeat", 3f, 3f);
     }
 }
