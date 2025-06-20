@@ -26,6 +26,13 @@ public class Movement : NetworkBehaviour
 
     [SerializeField]
     private float rotationSpeed = 300.0f; // új: forgási sebesség
+
+
+    public float comboMaxDelay = 1f;
+
+    private int comboStep = 0;
+    private float lastClickTime = 0f;
+
     public override void OnNetworkSpawn()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -119,6 +126,34 @@ public class Movement : NetworkBehaviour
             Debug.Log("Q fel lett engedve, roll vége.");
         }
 
+        if (Input.GetMouseButtonDown(0))
+        {
+            float timeSinceLastClick = Time.time - lastClickTime;
+            lastClickTime = Time.time;
+
+            if (timeSinceLastClick > comboMaxDelay)
+            {
+                // Ha túl lassan nyomta, újraindul
+                comboStep = 0;
+            }
+
+            comboStep++;
+
+            if (comboStep == 1)
+            {
+                animator.SetTrigger("ClubGroundSlam");
+            }
+            else if (comboStep == 2)
+            {
+                animator.SetTrigger("ClubWide");
+            }
+            else if (comboStep == 3)
+            {
+                animator.SetTrigger("Attack3");
+                comboStep = 0; // reseteljük, ha elérte a végét
+            }
+        }
+
         // ?? Animáció vezérlése
         Debug.Log(moveInput.magnitude);
         bool isWalking = moveInput.magnitude > 0.1f;
@@ -141,7 +176,13 @@ public class Movement : NetworkBehaviour
 		
         moveInput = moveInput.normalized;
     }
-
+    public void EndOfAttack()
+    {
+        if (Time.time - lastClickTime > comboMaxDelay)
+        {
+            comboStep = 0;
+        }
+    }
     void FixedUpdate()
     {
         // Apply movement using Rigidbody
