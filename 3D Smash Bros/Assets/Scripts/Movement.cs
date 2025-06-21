@@ -28,10 +28,11 @@ public class Movement : NetworkBehaviour
     private float rotationSpeed = 300.0f; // új: forgási sebesség
 
 
-    public float comboMaxDelay = 1f;
-
-    private int comboStep = 0;
-    private float lastClickTime = 0f;
+    public float cooldownTime = 2f;
+    private float nextFireTime = 0f;
+    public static int noOfClicks = 0;
+    float lastClickedTime = 0;
+    float maxComboDelay = 1;
 
     public override void OnNetworkSpawn()
     {
@@ -47,7 +48,29 @@ public class Movement : NetworkBehaviour
            
         }
     }
-	
+
+    void OnClick()
+    {
+        lastClickedTime = Time.time;
+        noOfClicks++;
+        
+        if (noOfClicks == 1)
+        {
+            animator.SetTrigger("ClubGroundSlam");
+        }
+        noOfClicks = Mathf.Clamp(noOfClicks, 0, 3);
+
+        if (noOfClicks >= 2 )
+        {
+            animator.SetTrigger("ClubWide");
+        }
+        if (noOfClicks >= 3 )
+        {
+            animator.SetTrigger("ClubLunge");
+        }
+        Debug.Log(noOfClicks);
+    }
+
     void Update()
     {
         if (!IsOwner)
@@ -55,7 +78,10 @@ public class Movement : NetworkBehaviour
             return;
         }
 
-		if(rb.linearVelocity.magnitude < 2f){
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // 0 = base layer
+
+
+        if (rb.linearVelocity.magnitude < 2f){
 			rb.linearVelocity = Vector3.zero;
 		}
 		
@@ -75,11 +101,9 @@ public class Movement : NetworkBehaviour
 			speed = 5.0f;
 		}
 
-        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
 
-        if (stateInfo.IsName("Punch") && stateInfo.normalizedTime < 1.0f)
+        if (animator.GetBool("inSubStateMachine") && !stateInfo.IsName("Roll"))
         {
-            // Ne csináljon semmit
             moveInput = Vector3.zero;
         }
         else
@@ -95,24 +119,21 @@ public class Movement : NetworkBehaviour
             if (Input.GetKey(KeyCode.D))
                 transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
         }
-
+        if (animator.GetBool("inSubStateMachine"))
+        {
+            Debug.Log("SubState Machine aktív!");
+        }
 
 
         if (Input.GetKeyDown(KeyCode.V))
         {
-            if (!(stateInfo.IsName("Punch") && stateInfo.normalizedTime < 1.0f))
-            {
-                animator.SetTrigger("Punch");
-            }
+            animator.SetTrigger("Punch");
         }
 
         // Ne engedje újraindítani a gurulást, ha még tart
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            if (!(stateInfo.IsName("Roll") && stateInfo.normalizedTime < 1.0f))
-            {
-                animator.SetTrigger("Roll");
-            }
+            animator.SetTrigger("Roll");
         }
 
         if (Input.GetKey(KeyCode.Q))
@@ -126,31 +147,15 @@ public class Movement : NetworkBehaviour
             Debug.Log("Q fel lett engedve, roll vége.");
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if (Time.time - lastClickedTime > maxComboDelay)
         {
-            float timeSinceLastClick = Time.time - lastClickTime;
-            lastClickTime = Time.time;
-
-            if (timeSinceLastClick > comboMaxDelay)
+            noOfClicks = 0;
+        }
+        if (Time.time > nextFireTime)
+        {
+            if (Input.GetMouseButtonDown(0))
             {
-                // Ha túl lassan nyomta, újraindul
-                comboStep = 0;
-            }
-
-            comboStep++;
-
-            if (comboStep == 1)
-            {
-                animator.SetTrigger("ClubGroundSlam");
-            }
-            else if (comboStep == 2)
-            {
-                animator.SetTrigger("ClubWide");
-            }
-            else if (comboStep == 3)
-            {
-                animator.SetTrigger("Attack3");
-                comboStep = 0; // reseteljük, ha elérte a végét
+                OnClick();
             }
         }
 
@@ -175,13 +180,6 @@ public class Movement : NetworkBehaviour
 		}
 		
         moveInput = moveInput.normalized;
-    }
-    public void EndOfAttack()
-    {
-        if (Time.time - lastClickTime > comboMaxDelay)
-        {
-            comboStep = 0;
-        }
     }
     void FixedUpdate()
     {
