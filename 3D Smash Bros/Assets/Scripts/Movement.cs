@@ -22,10 +22,12 @@ public class Movement : NetworkBehaviour
     private Vector3 moveInput;
     private bool isGrounded = false;
     Camera _camera;
+    [SerializeField] private Transform cameraTransform; // A fõkamera Transformja
+
     public Animator animator;
 
     [SerializeField]
-    private float rotationSpeed = 300.0f; // új: forgási sebesség
+    private float rotationSpeed = 1000f; // új: forgási sebesség
 
 
     public float cooldownTime = 2f;
@@ -41,6 +43,7 @@ public class Movement : NetworkBehaviour
 
         rb = GetComponent<Rigidbody>();
         _camera = GetComponentInChildren<Camera>();
+        cameraTransform = Camera.main.transform;
 
         if (!IsOwner)
         {
@@ -56,7 +59,7 @@ public class Movement : NetworkBehaviour
         
         if (noOfClicks == 1)
         {
-            animator.SetTrigger("ClubGroundSlam");
+            animator.SetTrigger("ClubLunge");
         }
         noOfClicks = Mathf.Clamp(noOfClicks, 0, 3);
 
@@ -66,7 +69,7 @@ public class Movement : NetworkBehaviour
         }
         if (noOfClicks >= 3 )
         {
-            animator.SetTrigger("ClubLunge");
+            animator.SetTrigger("ClubGroundSlam");
         }
         Debug.Log(noOfClicks);
     }
@@ -108,16 +111,21 @@ public class Movement : NetworkBehaviour
         }
         else
         {
-            if (Input.GetKey(KeyCode.W))
-                moveInput += new Vector3(transform.forward.x, 0.0f, transform.forward.z);
-            if (Input.GetKey(KeyCode.S))
-                moveInput -= new Vector3(transform.forward.x, 0.0f, transform.forward.z);
+            Vector3 forward = cameraTransform.forward;
+            Vector3 right = cameraTransform.right;
 
-            // Forgás balra/jobbra (A / D)
-            if (Input.GetKey(KeyCode.A))
-                transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
-            if (Input.GetKey(KeyCode.D))
-                transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
+            // Csak vízszintes komponensek
+            forward.y = 0f;
+            right.y = 0f;
+            forward.Normalize();
+            right.Normalize();
+
+            moveInput = Vector3.zero;
+
+            if (Input.GetKey(KeyCode.W)) moveInput += forward;
+            if (Input.GetKey(KeyCode.S)) moveInput -= forward;
+            if (Input.GetKey(KeyCode.D)) moveInput += right;
+            if (Input.GetKey(KeyCode.A)) moveInput -= right;
         }
         if (animator.GetBool("inSubStateMachine"))
         {
@@ -180,6 +188,12 @@ public class Movement : NetworkBehaviour
 		}
 		
         moveInput = moveInput.normalized;
+
+        if (moveInput.magnitude > 0.1f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(moveInput);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+        }
     }
     void FixedUpdate()
     {
