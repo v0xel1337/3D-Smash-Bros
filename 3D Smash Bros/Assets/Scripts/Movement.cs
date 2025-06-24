@@ -9,11 +9,6 @@ public class Movement : NetworkBehaviour
     [SerializeField]
     private float speed = 5.0f;
 
-    [SerializeField]
-    private float speedH = 2.0f;
-    [SerializeField]
-    private float speedV = 2.0f;
-
    	[SerializeField] private float jumpForce = 700.0f;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundCheckDistance = 1.1f;
@@ -25,10 +20,6 @@ public class Movement : NetworkBehaviour
     [SerializeField] private Transform cameraTransform; // A fõkamera Transformja
 
     public Animator animator;
-
-    [SerializeField]
-    private float rotationSpeed = 1000f; // új: forgási sebesség
-
 
     public float cooldownTime = 2f;
     private float nextFireTime = 0f;
@@ -202,11 +193,10 @@ public class Movement : NetworkBehaviour
         rb.MovePosition(targetPosition);
     }
 
-    public void PerformPunchHit()
-    {
-        float punchRange = 2.0f; // Milyen messzire ér az ütés
-        float punchDamage = 10f;
 
+
+    public void PerformPunchHit(float punchRange)
+    {
         if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, punchRange))
         {
             Debug.Log("Ütés eltalált valamit: " + hit.collider.name);
@@ -215,29 +205,68 @@ public class Movement : NetworkBehaviour
             var enemy = hit.collider.GetComponent<Movement>();
             if (enemy != null)
             {
-                enemy.TakeDamage(punchDamage);
+                enemy.PlayAnimationOnEnemy();
             }
         }
     }
 
-    public void TakeDamage(float damage)
+    public void DamageZoneAreaCheck()
+    {
+        if (playersInside.Count == 0)
+        {
+            noOfClicks = 0;
+            return;
+        }
+        foreach (Movement enemy in playersInside)
+        {
+            // Például: sebezd meg õket
+            enemy.PlayAnimationOnEnemy(); // feltéve, hogy van ilyen metódus a PlayerCombat scriptben
+
+            Debug.Log("Sebzést kapott egy játékos a triggerben: " + enemy.name);
+        }
+    }
+
+    private HashSet<Movement> playersInside = new HashSet<Movement>();
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Movement pc = other.GetComponent<Movement>();
+        if (pc != null)
+        {
+            playersInside.Add(pc);
+            Debug.Log("Játékos belépett a mesh triggerbe.");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        Movement pc = other.GetComponent<Movement>();
+        if (pc != null)
+        {
+            playersInside.Remove(pc);
+            Debug.Log("Játékos kilépett a mesh triggerbõl.");
+        }
+    }
+
+    public bool IsAnyPlayerInside()
+    {
+        return playersInside.Count > 0;
+    }
+
+    public void PlayAnimationOnEnemy()
     {
         animator.SetTrigger("GetHit");
+    }
+
+    /*
+    public void TakeDamageKnock() // ANIMATION EVENT
+    {
         Vector3 knockDir = -transform.forward; // játékos háta mögé
 
         // Add vertical component
-        knockDir.y = 0.5f;
+        knockDir.y = 0.2f;
         knockDir.Normalize();
         rb.AddForce(knockDir * 10f, ForceMode.VelocityChange);
     }
-
-    private void TakeDamageRepeat()
-    {
-        TakeDamage(1); // így az alapértelmezett 1f érték fog futni
-    }
-
-    public void Start() // TEST
-    {
-        //InvokeRepeating("TakeDamageRepeat", 3f, 3f);
-    }
+    */
 }

@@ -1,10 +1,10 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class Bomb : MonoBehaviour
+public class Bomb : NetworkBehaviour
 {
     [SerializeField] private float damage = 25f;
     [SerializeField] private float baseKnockback = 15f;
-    [SerializeField] private float upwardBoost = 5f;
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -25,7 +25,7 @@ public class Bomb : MonoBehaviour
             }
 
             // Optionally destroy the bomb after hitting
-            Destroy(gameObject);
+            NetworkObject.Despawn();
         }
     }
 }
