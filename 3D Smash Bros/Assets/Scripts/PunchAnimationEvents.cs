@@ -23,17 +23,9 @@ public class PunchAnimationEvents : MonoBehaviour
         }
     }
 
-    void TakeDamageEvent(string actionID)
+    void TakeDamageEvent()
     {
-        switch (actionID)
-        {
-            case "Punch":
-                pc.TakeDamage(10, -transform.forward.normalized * 12);
-                break;
-            case "HitWeak":
-                pc.TakeDamage(10, -transform.forward.normalized * 12);
-                break;
-        }
+        pc.TakeDamage(10, -transform.forward.normalized * 12);
     }
 
 }

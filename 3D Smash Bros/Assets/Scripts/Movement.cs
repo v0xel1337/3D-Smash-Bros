@@ -26,6 +26,38 @@ public class Movement : NetworkBehaviour
     public static int noOfClicks = 0;
     float lastClickedTime = 0;
     float maxComboDelay = 1;
+    PlayerHealthUI ui;
+    public float maxHealth = 100f;
+
+    // NetworkVariable szinkronizálja a hálózaton a health értékét
+    public NetworkVariable<float> HEALTH = new NetworkVariable<float>(
+        100f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Owner
+    );
+
+    public void TakeDamage(float amount)
+    {
+        if (!IsOwner) return;
+
+        HEALTH.Value -= amount;
+        if (HEALTH.Value > maxHealth)
+        {
+            HEALTH.Value = maxHealth;
+        }
+
+        if (HEALTH.Value <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        Debug.Log(name + " has died to the storm!");
+        // Ne használd Application.Quit multiplayerben!
+        Destroy(gameObject);
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -39,26 +71,38 @@ public class Movement : NetworkBehaviour
         if (!IsOwner)
         {
             _camera.enabled = false;
-           
+            return;
+        }
+
+        // Keresd meg a UI-t a jelenetben
+        ui = FindObjectOfType<PlayerHealthUI>();
+        if (ui != null)
+        {
+            ui.SetPlayerHealth(this);
+        }
+        else
+        {
+            Debug.LogWarning("PlayerHealthUI nem található a jelenetben.");
         }
     }
 
     void OnClick()
     {
         lastClickedTime = Time.time;
-        noOfClicks++;
-        
-        if (noOfClicks == 1)
+
+       
+
+        if (noOfClicks == 0)
         {
             animator.SetTrigger("ClubLunge");
         }
         noOfClicks = Mathf.Clamp(noOfClicks, 0, 3);
 
-        if (noOfClicks >= 2 )
+        if (noOfClicks >= 1 )
         {
             animator.SetTrigger("ClubWide");
         }
-        if (noOfClicks >= 3 )
+        if (noOfClicks >= 2 )
         {
             animator.SetTrigger("ClubGroundSlam");
         }
@@ -149,6 +193,7 @@ public class Movement : NetworkBehaviour
         if (Time.time - lastClickedTime > maxComboDelay)
         {
             noOfClicks = 0;
+            ui.UpdateCircles(noOfClicks);
         }
         if (Time.time > nextFireTime)
         {
@@ -215,18 +260,29 @@ public class Movement : NetworkBehaviour
         if (playersInside.Count == 0)
         {
             noOfClicks = 0;
+            
+            ui.UpdateCircles(noOfClicks);
             return;
+        }
+        else
+        {
+            noOfClicks++;
+            Debug.Log(ui.transform.name);
+            ui.UpdateCircles(noOfClicks);
         }
         foreach (Movement enemy in playersInside)
         {
             // Például: sebezd meg õket
             enemy.PlayAnimationOnEnemy(); // feltéve, hogy van ilyen metódus a PlayerCombat scriptben
-
             Debug.Log("Sebzést kapott egy játékos a triggerben: " + enemy.name);
+        }
+        for (int i = playersInside.Count - 1; i >= 0; i--)
+        {
+            playersInside.RemoveAt(i);
         }
     }
 
-    private HashSet<Movement> playersInside = new HashSet<Movement>();
+    public List<Movement> playersInside = new List<Movement>();
 
     private void OnTriggerEnter(Collider other)
     {
@@ -235,16 +291,6 @@ public class Movement : NetworkBehaviour
         {
             playersInside.Add(pc);
             Debug.Log("Játékos belépett a mesh triggerbe.");
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        Movement pc = other.GetComponent<Movement>();
-        if (pc != null)
-        {
-            playersInside.Remove(pc);
-            Debug.Log("Játékos kilépett a mesh triggerbõl.");
         }
     }
 

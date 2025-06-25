@@ -510,7 +510,6 @@ GameObject:
   - component: {fileID: 276941970008173384}
   - component: {fileID: 6513558348379632653}
   - component: {fileID: 1650504665404389941}
-  - component: {fileID: 2723756009546053618}
   - component: {fileID: 8337604964979138523}
   - component: {fileID: 304446975631463527}
   - component: {fileID: 538265417478302978}
@@ -652,22 +651,10 @@ MonoBehaviour:
   cameraTransform: {fileID: 0}
   animator: {fileID: 538265417478302978}
   cooldownTime: 0.8
---- !u!114 &2723756009546053618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3738092772479428405}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8eefe645ee85d854db8284be084df6c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
   HEALTH:
     m_InternalValue: 100
+  uiPrefab: {fileID: 352571969444766114, guid: 23c40e7771194154c819447f3b8f12b8, type: 3}
 --- !u!114 &8337604964979138523
 MonoBehaviour:
   m_ObjectHideFlags: 0

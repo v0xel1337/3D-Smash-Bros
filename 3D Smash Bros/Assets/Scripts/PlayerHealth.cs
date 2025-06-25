@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class PlayerHealth : NetworkBehaviour
 {
+    /*
     public float maxHealth = 100f;
 
     // NetworkVariable szinkronizálja a hálózaton a health értékét
@@ -46,4 +47,5 @@ public class PlayerHealth : NetworkBehaviour
         // Ne használd Application.Quit multiplayerben!
         Destroy(gameObject);
     }
+    */
 }

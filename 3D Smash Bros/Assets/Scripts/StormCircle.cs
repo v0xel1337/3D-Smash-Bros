@@ -32,13 +32,13 @@ public class StormCircle : MonoBehaviour
 
             if (dist > currentRadius)
             {
-                PlayerHealth hp = player.GetComponent<PlayerHealth>();
+                Movement hp = player.GetComponent<Movement>();
                 if (hp != null)
                 {
                     hp.TakeDamage(damagePerSecond * Time.deltaTime);
                 }
             } else {
-				PlayerHealth hp = player.GetComponent<PlayerHealth>();
+                Movement hp = player.GetComponent<Movement>();
                 if (hp != null)
                 {
                     hp.TakeDamage(-1 * (damagePerSecond * Time.deltaTime));
