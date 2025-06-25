@@ -10,22 +10,24 @@ public class Bomb : NetworkBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Get direction from bomb to player
             Vector3 knockDir = (collision.transform.position - transform.position).normalized;
-
-            // Add vertical component
             knockDir.y = 0.5f;
             knockDir.Normalize();
 
-            // Apply knockback and damage
             PlayerCombat pc = collision.gameObject.GetComponent<PlayerCombat>();
             if (pc != null)
             {
                 pc.TakeDamage(damage, knockDir * baseKnockback);
             }
 
-            // Optionally destroy the bomb after hitting
-            NetworkObject.Despawn();
+            RequestDespawnServerRpc();
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+
+    private void RequestDespawnServerRpc()
+    {
+        NetworkObject.Despawn();
     }
 }

@@ -257,35 +257,37 @@ public class Movement : NetworkBehaviour
 
     public void DamageZoneAreaCheck()
     {
+        if (!IsOwner)
+            return;
+
         if (playersInside.Count == 0)
         {
             noOfClicks = 0;
-            
-            ui.UpdateCircles(noOfClicks);
+            if (ui != null)
+                ui.UpdateCircles(noOfClicks);
             return;
         }
-        else
-        {
-            noOfClicks++;
-            Debug.Log(ui.transform.name);
+
+        noOfClicks++;
+        if (ui != null)
             ui.UpdateCircles(noOfClicks);
-        }
+
         foreach (Movement enemy in playersInside)
         {
-            // Például: sebezd meg õket
-            enemy.PlayAnimationOnEnemy(); // feltéve, hogy van ilyen metódus a PlayerCombat scriptben
+            enemy.PlayAnimationOnEnemy();
             Debug.Log("Sebzést kapott egy játékos a triggerben: " + enemy.name);
         }
-        for (int i = playersInside.Count - 1; i >= 0; i--)
-        {
-            playersInside.RemoveAt(i);
-        }
+
+        playersInside.Clear();
+
     }
 
     public List<Movement> playersInside = new List<Movement>();
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!IsOwner) return;
+
         Movement pc = other.GetComponent<Movement>();
         if (pc != null)
         {
