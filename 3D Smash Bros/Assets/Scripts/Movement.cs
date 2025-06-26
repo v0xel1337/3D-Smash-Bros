@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Movement : NetworkBehaviour
@@ -21,13 +22,17 @@ public class Movement : NetworkBehaviour
 
     public Animator animator;
 
-    public float cooldownTime = 2f;
-    private float nextFireTime = 0f;
     public static int noOfClicks = 0;
-    float lastClickedTime = 0;
-    float maxComboDelay = 1;
     PlayerHealthUI ui;
     public float maxHealth = 100f;
+
+
+    public Image cooldownImage; // ide húzod be az UI Image-t
+    private bool isAbilityOnCooldown = false;
+    private float cooldownTimer = 0f;
+    public float abilityCooldownTime = 5f;
+
+
 
     // NetworkVariable szinkronizálja a hálózaton a health értékét
     public NetworkVariable<float> HEALTH = new NetworkVariable<float>(
@@ -73,6 +78,12 @@ public class Movement : NetworkBehaviour
             _camera.enabled = false;
             return;
         }
+        // Keresd meg az UI-t a jelenetbõl (csak a sajátodnál)
+        GameObject uiObj = GameObject.Find("ClickCooldown");
+        if (uiObj != null)
+        {
+            cooldownImage = uiObj.GetComponent<Image>();
+        }
 
         // Keresd meg a UI-t a jelenetben
         ui = FindObjectOfType<PlayerHealthUI>();
@@ -85,28 +96,42 @@ public class Movement : NetworkBehaviour
             Debug.LogWarning("PlayerHealthUI nem található a jelenetben.");
         }
     }
+    private string lastPlayedAnimation = "";
+    void ActivateAbility()
+    {
+        isAbilityOnCooldown = true;
+        cooldownTimer = 0f;
 
+        if (cooldownImage != null)
+            cooldownImage.fillAmount = 0f;
+
+        Debug.Log("Ability aktiválva!");
+    }
     void OnClick()
     {
-        lastClickedTime = Time.time;
+        
 
-       
-
-        if (noOfClicks == 0)
-        {
-            animator.SetTrigger("ClubLunge");
-        }
         noOfClicks = Mathf.Clamp(noOfClicks, 0, 3);
 
-        if (noOfClicks >= 1 )
+        string nextAnimation = "";
+
+        if (!isAbilityOnCooldown)
         {
-            animator.SetTrigger("ClubWide");
+            ActivateAbility();
+            if (noOfClicks == 0) nextAnimation = "Club Attack Lunge";
         }
-        if (noOfClicks >= 2 )
+        
+        else if (noOfClicks == 1) nextAnimation = "Club Attack Wide";
+        else if (noOfClicks == 2) nextAnimation = "Club Attack Ground Slam";
+
+        // Ne indítsuk újra ugyanazt az animációt, ha az már volt
+        if (nextAnimation != "" && lastPlayedAnimation != nextAnimation)
         {
-            animator.SetTrigger("ClubGroundSlam");
+            animator.CrossFade(nextAnimation, 0.15f);
+            lastPlayedAnimation = nextAnimation;
         }
-        Debug.Log(noOfClicks);
+
+        Debug.Log("Klikkszám: " + noOfClicks);
     }
 
     void Update()
@@ -118,6 +143,22 @@ public class Movement : NetworkBehaviour
 
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // 0 = base layer
 
+        if (isAbilityOnCooldown)
+        {
+            cooldownTimer += Time.deltaTime;
+            float fill = cooldownTimer / abilityCooldownTime;
+            if (cooldownImage != null)
+                cooldownImage.fillAmount = fill;
+
+            if (cooldownTimer >= abilityCooldownTime)
+            {
+                isAbilityOnCooldown = false;
+                cooldownTimer = 0f;
+
+                if (cooldownImage != null)
+                    cooldownImage.fillAmount = 1f;
+            }
+        }
 
         if (rb.linearVelocity.magnitude < 2f){
 			rb.linearVelocity = Vector3.zero;
@@ -190,17 +231,15 @@ public class Movement : NetworkBehaviour
             Debug.Log("Q fel lett engedve, roll vége.");
         }
 
-        if (Time.time - lastClickedTime > maxComboDelay)
+        if (!isAbilityOnCooldown)
         {
             noOfClicks = 0;
+            lastPlayedAnimation = ""; // animáció reset
             ui.UpdateCircles(noOfClicks);
         }
-        if (Time.time > nextFireTime)
+        if (Input.GetMouseButtonDown(0))
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                OnClick();
-            }
+            OnClick();
         }
 
         // ?? Animáció vezérlése
