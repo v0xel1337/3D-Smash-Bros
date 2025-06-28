@@ -12,20 +12,15 @@ public class PunchAnimationEvents : MonoBehaviour
                 movementScript.PerformPunchHit(2);
                 break;
             case "Lunge":
-                movementScript.DamageZoneAreaCheck();
+                movementScript.DamageZoneAreaCheck("Lunge");
                 break;
             case "Wide":
-                movementScript.DamageZoneAreaCheck();
+                movementScript.DamageZoneAreaCheck("Wide");
                 break;
             case "Slam":
-                movementScript.DamageZoneAreaCheck();
+                movementScript.DamageZoneAreaCheck("Slam");
                 break;
         }
-    }
-
-    void TakeDamageEvent()
-    {
-        pc.TakeDamage(10, -transform.forward.normalized * 12);
     }
 
 }

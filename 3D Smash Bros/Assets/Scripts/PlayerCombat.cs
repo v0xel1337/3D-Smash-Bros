@@ -7,7 +7,7 @@ public class PlayerCombat : NetworkBehaviour
     public NetworkVariable<float> percent = new NetworkVariable<float>(
         0f,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Owner
+        NetworkVariableWritePermission.Owner // ✔️ Ez engedi a szervernek módosítani
     );
 
     private Rigidbody rb;
@@ -37,25 +37,27 @@ public class PlayerCombat : NetworkBehaviour
         percent.OnValueChanged += OnPercentChanged;
     }
 
+
     public void TakeDamage(float amount, Vector3 knockback)
     {
         if (!IsOwner) return;
-
+        
         percent.Value += amount;
 
         float totalKnockback = knockback.magnitude + (percent.Value * 0.1f);
         Vector3 finalForce = knockback.normalized * totalKnockback;
 
-        rb.linearVelocity = Vector3.zero; // 'linearVelocity' nem létezik Unity-ben, 'velocity' a helyes
+        rb.linearVelocity = Vector3.zero;
         rb.AddForce(finalForce, ForceMode.VelocityChange);
 
-        UpdatePercentUI();
+        UpdatePercentUI(); // ha akarod, ClientRpc-ként is lehet később UI frissítés
     }
 
     private void UpdatePercentUI()
     {
         if (percentText != null)
         {
+            Debug.Log("nem");
             percentText.text = Mathf.RoundToInt(percent.Value) + "%";
         }
     }

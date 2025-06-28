@@ -650,11 +650,13 @@ MonoBehaviour:
   groundCheckDistance: 1.1
   cameraTransform: {fileID: 0}
   animator: {fileID: 538265417478302978}
-  cooldownTime: 0.8
   maxHealth: 100
+  cooldownImage: {fileID: 0}
+  abilityCooldownTime: 5
   HEALTH:
     m_InternalValue: 100
-  uiPrefab: {fileID: 352571969444766114, guid: 23c40e7771194154c819447f3b8f12b8, type: 3}
+  pc: {fileID: 8337604964979138523}
+  playersInside: []
 --- !u!114 &8337604964979138523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -670,6 +672,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   percent:
     m_InternalValue: 0
+  amount: 0
+  knockback: {x: 0, y: 0, z: 0}
 --- !u!114 &304446975631463527
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-using System.Collections;
+Ôªøusing System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -18,7 +18,7 @@ public class Movement : NetworkBehaviour
     private Vector3 moveInput;
     private bool isGrounded = false;
     Camera _camera;
-    [SerializeField] private Transform cameraTransform; // A fıkamera Transformja
+    [SerializeField] private Transform cameraTransform; // A f≈ëkamera Transformja
 
     public Animator animator;
 
@@ -27,14 +27,14 @@ public class Movement : NetworkBehaviour
     public float maxHealth = 100f;
 
 
-    public Image cooldownImage; // ide h˙zod be az UI Image-t
+    public Image cooldownImage; // ide h√∫zod be az UI Image-t
     private bool isAbilityOnCooldown = false;
     private float cooldownTimer = 0f;
     public float abilityCooldownTime = 5f;
 
 
 
-    // NetworkVariable szinkroniz·lja a h·lÛzaton a health ÈrtÈkÈt
+    // NetworkVariable szinkroniz√°lja a h√°l√≥zaton a health √©rt√©k√©t
     public NetworkVariable<float> HEALTH = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
@@ -60,7 +60,7 @@ public class Movement : NetworkBehaviour
     void Die()
     {
         Debug.Log(name + " has died to the storm!");
-        // Ne haszn·ld Application.Quit multiplayerben!
+        // Ne haszn√°ld Application.Quit multiplayerben!
         Destroy(gameObject);
     }
 
@@ -78,7 +78,7 @@ public class Movement : NetworkBehaviour
             _camera.enabled = false;
             return;
         }
-        // Keresd meg az UI-t a jelenetbıl (csak a saj·todn·l)
+        // Keresd meg az UI-t a jelenetb≈ël (csak a saj√°todn√°l)
         GameObject uiObj = GameObject.Find("ClickCooldown");
         if (uiObj != null)
         {
@@ -93,7 +93,7 @@ public class Movement : NetworkBehaviour
         }
         else
         {
-            Debug.LogWarning("PlayerHealthUI nem tal·lhatÛ a jelenetben.");
+            Debug.LogWarning("PlayerHealthUI nem tal√°lhat√≥ a jelenetben.");
         }
     }
     private string lastPlayedAnimation = "";
@@ -105,12 +105,10 @@ public class Movement : NetworkBehaviour
         if (cooldownImage != null)
             cooldownImage.fillAmount = 0f;
 
-        Debug.Log("Ability aktiv·lva!");
+        Debug.Log("Ability aktiv√°lva!");
     }
     void OnClick()
     {
-        
-
         noOfClicks = Mathf.Clamp(noOfClicks, 0, 3);
 
         string nextAnimation = "";
@@ -118,20 +116,28 @@ public class Movement : NetworkBehaviour
         if (!isAbilityOnCooldown)
         {
             ActivateAbility();
-            if (noOfClicks == 0) nextAnimation = "Club Attack Lunge";
+            if (noOfClicks == 0)
+            {
+                nextAnimation = "Club Attack Lunge";
+            }
         }
-        
-        else if (noOfClicks == 1) nextAnimation = "Club Attack Wide";
-        else if (noOfClicks == 2) nextAnimation = "Club Attack Ground Slam";
+        else if (noOfClicks == 1)
+        {
+            nextAnimation = "Club Attack Wide";
+            FaceCameraDirection(); // Rotate before attacking
+        }
+        else if (noOfClicks == 2)
+        {
+            nextAnimation = "Club Attack Ground Slam";
+            FaceCameraDirection(); // Rotate before attacking
+        }
 
-        // Ne indÌtsuk ˙jra ugyanazt az anim·ciÛt, ha az m·r volt
+        // Avoid replaying the same animation
         if (nextAnimation != "" && lastPlayedAnimation != nextAnimation)
         {
             animator.CrossFade(nextAnimation, 0.15f);
             lastPlayedAnimation = nextAnimation;
         }
-
-        Debug.Log("Klikksz·m: " + noOfClicks);
     }
 
     void Update()
@@ -190,7 +196,7 @@ public class Movement : NetworkBehaviour
             Vector3 forward = cameraTransform.forward;
             Vector3 right = cameraTransform.right;
 
-            // Csak vÌzszintes komponensek
+            // Csak v√≠zszintes komponensek
             forward.y = 0f;
             right.y = 0f;
             forward.Normalize();
@@ -205,7 +211,7 @@ public class Movement : NetworkBehaviour
         }
         if (animator.GetBool("inSubStateMachine"))
         {
-            Debug.Log("SubState Machine aktÌv!");
+            Debug.Log("SubState Machine akt√≠v!");
         }
 
 
@@ -214,7 +220,7 @@ public class Movement : NetworkBehaviour
             animator.SetTrigger("Punch");
         }
 
-        // Ne engedje ˙jraindÌtani a gurul·st, ha mÈg tart
+        // Ne engedje √∫jraind√≠tani a gurul√°st, ha m√©g tart
         if (Input.GetKeyDown(KeyCode.Q))
         {
             animator.SetTrigger("Roll");
@@ -228,13 +234,13 @@ public class Movement : NetworkBehaviour
         if (Input.GetKeyUp(KeyCode.Q))
         {
             animator.SetBool("IsRolling", false);
-            Debug.Log("Q fel lett engedve, roll vÈge.");
+            Debug.Log("Q fel lett engedve, roll v√©ge.");
         }
 
         if (!isAbilityOnCooldown)
         {
             noOfClicks = 0;
-            lastPlayedAnimation = ""; // anim·ciÛ reset
+            lastPlayedAnimation = ""; // anim√°ci√≥ reset
             ui.UpdateCircles(noOfClicks);
         }
         if (Input.GetMouseButtonDown(0))
@@ -242,7 +248,7 @@ public class Movement : NetworkBehaviour
             OnClick();
         }
 
-        // ?? Anim·ciÛ vezÈrlÈse
+        // ?? Anim√°ci√≥ vez√©rl√©se
         Debug.Log(moveInput.magnitude);
         bool isWalking = moveInput.magnitude > 0.1f;
         bool isRunning = isWalking && Input.GetKey(KeyCode.LeftShift);
@@ -283,21 +289,19 @@ public class Movement : NetworkBehaviour
     {
         if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, punchRange))
         {
-            Debug.Log("‹tÈs eltal·lt valamit: " + hit.collider.name);
+            Debug.Log("√út√©s eltal√°lt valamit: " + hit.collider.name);
 
             // Ha van rajta valami "damageable" script
             var enemy = hit.collider.GetComponent<Movement>();
             if (enemy != null)
             {
-                enemy.PlayAnimationOnEnemy();
+                enemy.PlayAnimationOnEnemy(10, 12);
             }
         }
     }
-
-    public void DamageZoneAreaCheck()
+    public PlayerCombat pc;
+    public void DamageZoneAreaCheck(string actionID)
     {
-        if (!IsOwner)
-            return;
 
         if (playersInside.Count == 0)
         {
@@ -311,10 +315,13 @@ public class Movement : NetworkBehaviour
         if (ui != null)
             ui.UpdateCircles(noOfClicks);
 
+        
+
         foreach (Movement enemy in playersInside)
         {
-            enemy.PlayAnimationOnEnemy();
-            Debug.Log("SebzÈst kapott egy j·tÈkos a triggerben: " + enemy.name);
+            Debug.Log(enemy.name);
+            enemy.PlayAnimationOnEnemy(10, 12);
+            Debug.Log("Sebz√©st kapott egy j√°t√©kos a triggerben: " + enemy.name);
         }
 
         playersInside.Clear();
@@ -325,13 +332,12 @@ public class Movement : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!IsOwner) return;
 
-        Movement pc = other.GetComponent<Movement>();
-        if (pc != null)
+        Movement pcTemp = other.GetComponent<Movement>();
+        if (pcTemp != null)
         {
-            playersInside.Add(pc);
-            Debug.Log("J·tÈkos belÈpett a mesh triggerbe.");
+            playersInside.Add(pcTemp);
+            Debug.Log("J√°t√©kos bel√©pett a mesh triggerbe.");
         }
     }
 
@@ -340,15 +346,53 @@ public class Movement : NetworkBehaviour
         return playersInside.Count > 0;
     }
 
-    public void PlayAnimationOnEnemy()
+    public void PlayAnimationOnEnemy(float amount, float knockbackForce)
     {
-        animator.SetTrigger("GetHit");
+        pc.TakeDamage(amount, -transform.forward.normalized * knockbackForce);
+        if (IsOwner)
+        {
+            // Ha a jelenlegi objektum a saj√°tom (√©n kaptam √ºt√©st), √©s lok√°lisan j√°tszom
+            animator.SetTrigger("GetHit");
+        }
+        else
+        {
+            if (IsServer)
+            {
+                // Ha a szerver (host) futtatja ezt, de nem ≈ë a target, akkor k√ºldj√∂n ClientRpc-t a kliensnek
+                ClientRpcParams rpcParams = new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new ulong[] { OwnerClientId }
+                    }
+                };
+
+                PlayGetHitAnimationClientRpc(rpcParams);
+            }
+            else
+            {
+                // Ez akkor fut, ha egy kliens √ºti a hostot ‚Üí k√ºldj√∂n neki ServerRpc-t
+                RequestGetHitAnimationServerRpc();
+            }
+        }
     }
+
+    void FaceCameraDirection()
+    {
+        Vector3 cameraForward = cameraTransform.forward;
+        cameraForward.y = 0f; // Keep only horizontal rotation
+        if (cameraForward.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
+            transform.rotation = targetRotation;
+        }
+    }
+
 
     /*
     public void TakeDamageKnock() // ANIMATION EVENT
     {
-        Vector3 knockDir = -transform.forward; // j·tÈkos h·ta mˆgÈ
+        Vector3 knockDir = -transform.forward; // j√°t√©kos h√°ta m√∂g√©
 
         // Add vertical component
         knockDir.y = 0.2f;
@@ -356,4 +400,23 @@ public class Movement : NetworkBehaviour
         rb.AddForce(knockDir * 10f, ForceMode.VelocityChange);
     }
     */
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RequestGetHitAnimationServerRpc(ServerRpcParams rpcParams = default)
+    {
+        // Ezt a szerveren h√≠vjuk meg ‚Üí teh√°t ha a target a host, itt t√∂rt√©nik a trigger
+        animator.SetTrigger("GetHit");
+    }
+
+    [ClientRpc]
+    void PlayGetHitAnimationClientRpc(ClientRpcParams rpcParams = default)
+    {
+        if (!IsOwner) return; // csak a c√©lzott kliens j√°tssza le
+        animator.SetTrigger("GetHit");
+    }
+
+    void PlayGetHitAnimation()
+    {
+        animator.SetTrigger("GetHit");
+    }
 }
