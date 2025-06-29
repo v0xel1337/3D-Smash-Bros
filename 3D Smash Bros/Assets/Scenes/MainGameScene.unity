@@ -8260,11 +8260,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameUI
       objectReference: {fileID: 0}
-    - target: {fileID: 6452801621392751385, guid: 23c40e7771194154c819447f3b8f12b8,
-        type: 3}
-      propertyPath: m_Name
-      value: ClickCooldown
-      objectReference: {fileID: 0}
     - target: {fileID: 7086862179794637913, guid: 23c40e7771194154c819447f3b8f12b8,
         type: 3}
       propertyPath: m_Pivot.x
@@ -8365,8 +8360,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 3847794735749456224, guid: 23c40e7771194154c819447f3b8f12b8, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

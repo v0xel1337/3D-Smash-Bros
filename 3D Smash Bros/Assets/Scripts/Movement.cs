@@ -28,10 +28,13 @@ public class Movement : NetworkBehaviour
 
 
     public Image cooldownImage; // ide húzod be az UI Image-t
+    public Image cooldownGreenImage;
     private bool isAbilityOnCooldown = false;
     private float cooldownTimer = 0f;
-    public float abilityCooldownTime = 5f;
-
+    public float abilityCooldownTime = 1f;
+    private float greenCooldownTimer = 0f;
+    private float greenCooldownTime = 5f;
+    private bool isGreenOnCooldown = false;
 
 
     // NetworkVariable szinkronizálja a hálózaton a health értékét
@@ -80,9 +83,11 @@ public class Movement : NetworkBehaviour
         }
         // Keresd meg az UI-t a jelenetből (csak a sajátodnál)
         GameObject uiObj = GameObject.Find("ClickCooldown");
+        GameObject uiObj2 = GameObject.Find("ClickGreenCooldown");
         if (uiObj != null)
         {
             cooldownImage = uiObj.GetComponent<Image>();
+            cooldownGreenImage = uiObj2.GetComponent<Image>();
         }
 
         // Keresd meg a UI-t a jelenetben
@@ -100,6 +105,7 @@ public class Movement : NetworkBehaviour
     void ActivateAbility()
     {
         isAbilityOnCooldown = true;
+        
         cooldownTimer = 0f;
 
         if (cooldownImage != null)
@@ -109,11 +115,11 @@ public class Movement : NetworkBehaviour
     }
     void OnClick()
     {
-        noOfClicks = Mathf.Clamp(noOfClicks, 0, 3);
-
+        if (animator.GetBool("inSubStateMachine"))
+            return;
         string nextAnimation = "";
-
-        if (!isAbilityOnCooldown)
+        Debug.Log(noOfClicks);
+        if (!isAbilityOnCooldown && !isGreenOnCooldown)
         {
             ActivateAbility();
             if (noOfClicks == 0)
@@ -163,6 +169,23 @@ public class Movement : NetworkBehaviour
 
                 if (cooldownImage != null)
                     cooldownImage.fillAmount = 1f;
+            }
+        }
+
+        if (isGreenOnCooldown)
+        {
+            greenCooldownTimer += Time.deltaTime;
+            float fill = greenCooldownTimer / greenCooldownTime;
+            if (cooldownGreenImage != null)
+                cooldownGreenImage.fillAmount = 1f - fill;
+
+            if (greenCooldownTimer >= greenCooldownTime)
+            {
+                isGreenOnCooldown = false;
+                greenCooldownTimer = 0f;
+
+                if (cooldownGreenImage != null)
+                    cooldownGreenImage.fillAmount = 1f;
             }
         }
 
@@ -237,7 +260,7 @@ public class Movement : NetworkBehaviour
             Debug.Log("Q fel lett engedve, roll vége.");
         }
 
-        if (!isAbilityOnCooldown)
+        if (!isGreenOnCooldown)
         {
             noOfClicks = 0;
             lastPlayedAnimation = ""; // animáció reset
@@ -249,7 +272,6 @@ public class Movement : NetworkBehaviour
         }
 
         // ?? Animáció vezérlése
-        Debug.Log(moveInput.magnitude);
         bool isWalking = moveInput.magnitude > 0.1f;
         bool isRunning = isWalking && Input.GetKey(KeyCode.LeftShift);
 
@@ -295,37 +317,54 @@ public class Movement : NetworkBehaviour
             var enemy = hit.collider.GetComponent<Movement>();
             if (enemy != null)
             {
-                enemy.PlayAnimationOnEnemy(10, 12);
+                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
             }
         }
     }
     public PlayerCombat pc;
     public void DamageZoneAreaCheck(string actionID)
     {
-
+        Debug.Log("TALÁLAT: " + playersInside.Count);
         if (playersInside.Count == 0)
         {
             noOfClicks = 0;
+            isGreenOnCooldown = false;
+            greenCooldownTimer = 0f;
+
+            if (cooldownGreenImage != null)
+                cooldownGreenImage.fillAmount = 1f;
             if (ui != null)
                 ui.UpdateCircles(noOfClicks);
+
+            playersInside.Clear();
             return;
         }
-
-        noOfClicks++;
-        if (ui != null)
-            ui.UpdateCircles(noOfClicks);
-
         
-
-        foreach (Movement enemy in playersInside)
+        if (noOfClicks < 2)
         {
-            Debug.Log(enemy.name);
-            enemy.PlayAnimationOnEnemy(10, 12);
-            Debug.Log("Sebzést kapott egy játékos a triggerben: " + enemy.name);
+            isGreenOnCooldown = true;
+            greenCooldownTimer = 0f;
+            noOfClicks++;
+            foreach (Movement enemy in playersInside)
+            {
+                Debug.Log(enemy.name);
+                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
+                Debug.Log("Sebzést kapott egy játékos a triggerben: " + enemy.name);
+            }
+
+        }
+        else
+        {
+            isGreenOnCooldown = false;
+            greenCooldownTimer = 1f;
+            noOfClicks = 0;
+            cooldownGreenImage.fillAmount = 1f;
         }
 
         playersInside.Clear();
 
+        if (ui != null)
+            ui.UpdateCircles(noOfClicks);
     }
 
     public List<Movement> playersInside = new List<Movement>();
@@ -341,40 +380,35 @@ public class Movement : NetworkBehaviour
         }
     }
 
+    private void OnTriggerExit(Collider other)
+    {
+        Movement pcTemp = other.GetComponent<Movement>();
+        if (pcTemp != null && playersInside.Contains(pcTemp))
+        {
+            playersInside.Remove(pcTemp);
+            Debug.Log("Játékos kilépett a mesh triggerből.");
+        }
+    }
+
     public bool IsAnyPlayerInside()
     {
         return playersInside.Count > 0;
     }
 
-    public void PlayAnimationOnEnemy(float amount, float knockbackForce)
+    public void PlayAnimationOnEnemy(float amount, float knockbackForce, Vector3 attackerPosition)
     {
-        pc.TakeDamage(amount, -transform.forward.normalized * knockbackForce);
-        if (IsOwner)
+        Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+        pc.TakeDamage(amount, knockbackDirection * knockbackForce);
+        // Ha a szerver (host) futtatja ezt, de nem ő a target, akkor küldjön ClientRpc-t a kliensnek
+        ClientRpcParams rpcParams = new ClientRpcParams
         {
-            // Ha a jelenlegi objektum a sajátom (én kaptam ütést), és lokálisan játszom
-            animator.SetTrigger("GetHit");
-        }
-        else
-        {
-            if (IsServer)
+            Send = new ClientRpcSendParams
             {
-                // Ha a szerver (host) futtatja ezt, de nem ő a target, akkor küldjön ClientRpc-t a kliensnek
-                ClientRpcParams rpcParams = new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams
-                    {
-                        TargetClientIds = new ulong[] { OwnerClientId }
-                    }
-                };
+                TargetClientIds = new ulong[] { OwnerClientId }
+            }
+        };
 
-                PlayGetHitAnimationClientRpc(rpcParams);
-            }
-            else
-            {
-                // Ez akkor fut, ha egy kliens üti a hostot → küldjön neki ServerRpc-t
-                RequestGetHitAnimationServerRpc();
-            }
-        }
+        PlayGetHitAnimationClientRpc(rpcParams);
     }
 
     void FaceCameraDirection()
@@ -401,22 +435,10 @@ public class Movement : NetworkBehaviour
     }
     */
 
-    [ServerRpc(RequireOwnership = false)]
-    public void RequestGetHitAnimationServerRpc(ServerRpcParams rpcParams = default)
-    {
-        // Ezt a szerveren hívjuk meg → tehát ha a target a host, itt történik a trigger
-        animator.SetTrigger("GetHit");
-    }
-
     [ClientRpc]
     void PlayGetHitAnimationClientRpc(ClientRpcParams rpcParams = default)
     {
         if (!IsOwner) return; // csak a célzott kliens játssza le
-        animator.SetTrigger("GetHit");
-    }
-
-    void PlayGetHitAnimation()
-    {
         animator.SetTrigger("GetHit");
     }
 }

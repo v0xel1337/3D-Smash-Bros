@@ -652,7 +652,7 @@ MonoBehaviour:
   animator: {fileID: 538265417478302978}
   maxHealth: 100
   cooldownImage: {fileID: 0}
-  abilityCooldownTime: 5
+  abilityCooldownTime: 1
   HEALTH:
     m_InternalValue: 100
   pc: {fileID: 8337604964979138523}
@@ -672,8 +672,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   percent:
     m_InternalValue: 0
-  amount: 0
-  knockback: {x: 0, y: 0, z: 0}
 --- !u!114 &304446975631463527
 MonoBehaviour:
   m_ObjectHideFlags: 0
