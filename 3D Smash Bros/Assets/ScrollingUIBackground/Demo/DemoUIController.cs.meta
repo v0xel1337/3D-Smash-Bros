@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 505e64d271fced343891663dc38496c4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 317235
+  packageName: ScrollingUIBackground
+  packageVersion: 1.0
+  assetPath: Assets/ScrollingUIBackground/Demo/DemoUIController.cs
+  uploadId: 748890

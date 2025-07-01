@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a680c3888ebc89c4d8d0d6733078b0b5
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 317235
+  packageName: ScrollingUIBackground
+  packageVersion: 1.0
+  assetPath: Assets/ScrollingUIBackground/Codes/Editors/MenuItemScrollingUIBackground.cs
+  uploadId: 748890

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: a12d6b4944602674a87cee7a9f71bb7b
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 317235
+  packageName: ScrollingUIBackground
+  packageVersion: 1.0
+  assetPath: Assets/ScrollingUIBackground/Resources/ScrollingUIBackground.prefab
+  uploadId: 748890
