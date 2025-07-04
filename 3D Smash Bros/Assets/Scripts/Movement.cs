@@ -62,45 +62,46 @@ public class Movement : NetworkBehaviour
 
     void Die()
     {
-        Debug.Log(name + " has died to the storm!");
         // Ne használd Application.Quit multiplayerben!
         Destroy(gameObject);
+    }
+    private IEnumerator WaitForGameUI()
+    {
+        // Várd meg, amíg a GameUI.Instance nem null
+        while (GameUI.Instance == null)
+        {
+            yield return null;
+        }
+
+        cooldownImage = GameUI.Instance.clickCooldownImage;
+        cooldownGreenImage = GameUI.Instance.clickGreenCooldownImage;
+        ui = GameUI.Instance.healthUI;
+
+        if (ui != null)
+            ui.SetPlayerHealth(this);
     }
 
     public override void OnNetworkSpawn()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
         rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        pc = GetComponent<PlayerCombat>();
         _camera = GetComponentInChildren<Camera>();
-        cameraTransform = Camera.main.transform;
+        cameraTransform = _camera.transform;
 
         if (!IsOwner)
         {
             _camera.enabled = false;
             return;
         }
-        // Keresd meg az UI-t a jelenetből (csak a sajátodnál)
-        GameObject uiObj = GameObject.Find("ClickCooldown");
-        GameObject uiObj2 = GameObject.Find("ClickGreenCooldown");
-        if (uiObj != null)
-        {
-            cooldownImage = uiObj.GetComponent<Image>();
-            cooldownGreenImage = uiObj2.GetComponent<Image>();
-        }
 
-        // Keresd meg a UI-t a jelenetben
-        ui = FindObjectOfType<PlayerHealthUI>();
-        if (ui != null)
-        {
-            ui.SetPlayerHealth(this);
-        }
-        else
-        {
-            Debug.LogWarning("PlayerHealthUI nem található a jelenetben.");
-        }
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        StartCoroutine(WaitForGameUI());
+
     }
+
     private string lastPlayedAnimation = "";
     void ActivateAbility()
     {
@@ -111,14 +112,12 @@ public class Movement : NetworkBehaviour
         if (cooldownImage != null)
             cooldownImage.fillAmount = 0f;
 
-        Debug.Log("Ability aktiválva!");
     }
     void OnClick()
     {
         if (animator.GetBool("inSubStateMachine"))
             return;
         string nextAnimation = "";
-        Debug.Log(noOfClicks);
         if (!isAbilityOnCooldown && !isGreenOnCooldown)
         {
             ActivateAbility();
@@ -232,11 +231,6 @@ public class Movement : NetworkBehaviour
             if (Input.GetKey(KeyCode.D)) moveInput += right;
             if (Input.GetKey(KeyCode.A)) moveInput -= right;
         }
-        if (animator.GetBool("inSubStateMachine"))
-        {
-            Debug.Log("SubState Machine aktív!");
-        }
-
 
         if (Input.GetKeyDown(KeyCode.V))
         {
@@ -257,7 +251,6 @@ public class Movement : NetworkBehaviour
         if (Input.GetKeyUp(KeyCode.Q))
         {
             animator.SetBool("IsRolling", false);
-            Debug.Log("Q fel lett engedve, roll vége.");
         }
 
         if (!isGreenOnCooldown)
@@ -311,9 +304,6 @@ public class Movement : NetworkBehaviour
     {
         if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, punchRange))
         {
-            Debug.Log("Ütés eltalált valamit: " + hit.collider.name);
-
-            // Ha van rajta valami "damageable" script
             var enemy = hit.collider.GetComponent<Movement>();
             if (enemy != null)
             {
@@ -324,7 +314,6 @@ public class Movement : NetworkBehaviour
     public PlayerCombat pc;
     public void DamageZoneAreaCheck(string actionID)
     {
-        Debug.Log("TALÁLAT: " + playersInside.Count);
         if (playersInside.Count == 0)
         {
             noOfClicks = 0;
@@ -347,9 +336,7 @@ public class Movement : NetworkBehaviour
             noOfClicks++;
             foreach (Movement enemy in playersInside)
             {
-                Debug.Log(enemy.name);
                 enemy.PlayAnimationOnEnemy(10, 12, transform.position);
-                Debug.Log("Sebzést kapott egy játékos a triggerben: " + enemy.name);
             }
 
         }
@@ -376,7 +363,6 @@ public class Movement : NetworkBehaviour
         if (pcTemp != null)
         {
             playersInside.Add(pcTemp);
-            Debug.Log("Játékos belépett a mesh triggerbe.");
         }
     }
 
@@ -386,7 +372,6 @@ public class Movement : NetworkBehaviour
         if (pcTemp != null && playersInside.Contains(pcTemp))
         {
             playersInside.Remove(pcTemp);
-            Debug.Log("Játékos kilépett a mesh triggerből.");
         }
     }
 

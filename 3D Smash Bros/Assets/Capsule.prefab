@@ -648,10 +648,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 311
   groundCheckDistance: 1.1
-  cameraTransform: {fileID: 0}
+  rb: {fileID: 695746223619176670}
+  _camera: {fileID: 1706235094145927481}
+  cameraTransform: {fileID: 6406004041400770044}
   animator: {fileID: 538265417478302978}
   maxHealth: 100
   cooldownImage: {fileID: 0}
+  cooldownGreenImage: {fileID: 0}
   abilityCooldownTime: 1
   HEALTH:
     m_InternalValue: 100

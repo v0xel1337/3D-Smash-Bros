@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Unity.Netcode;
@@ -17,26 +19,27 @@ public class PlayerCombat : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
     }
-
     public override void OnNetworkSpawn()
     {
         if (IsOwner)
         {
-            percentText = GameObject.Find("Knockback Multiplier Text")?.GetComponent<TextMeshProUGUI>();
-
-            if (percentText == null)
-            {
-                Debug.LogWarning("PercentText UI elem nem található!");
-            }
-            else
-            {
-                UpdatePercentUI();
-            }
+            StartCoroutine(WaitForUIReferences());
         }
 
         percent.OnValueChanged += OnPercentChanged;
     }
 
+    private IEnumerator WaitForUIReferences()
+    {
+        while (GameUI.Instance == null)
+        {
+            yield return null;
+        }
+
+        percentText = GameUI.Instance.knockbackText;
+
+        UpdatePercentUI();
+    }
 
     public void TakeDamage(float amount, Vector3 knockback)
     {
@@ -57,7 +60,6 @@ public class PlayerCombat : NetworkBehaviour
     {
         if (percentText != null)
         {
-            Debug.Log("nem");
             percentText.text = Mathf.RoundToInt(percent.Value) + "%";
         }
     }

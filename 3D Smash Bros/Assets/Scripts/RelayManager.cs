@@ -9,6 +9,7 @@ using Unity.Services.Core;
 using Unity.Services.Relay.Models;
 using Unity.Services.Relay;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RelayManager : MonoBehaviour
 {
@@ -62,7 +63,6 @@ public class RelayManager : MonoBehaviour
 
     void ShowWaitingLobby(string joinCode)
     {
-        Debug.Log("");
         waitingLobbyPanel.SetActive(true);
         codeText.text = "Code: " + joinCode;
     }
@@ -78,6 +78,14 @@ public class RelayManager : MonoBehaviour
         {
             var playerNameText = Instantiate(playerNamePrefab, playerListContainer);
             playerNameText.text = name.ToString();
+        }
+    }
+
+    public void StartGame()
+    {
+        if (NetworkManager.Singleton.IsHost)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene("MainGameScene", LoadSceneMode.Single);
         }
     }
 }
