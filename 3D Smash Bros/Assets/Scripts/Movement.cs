@@ -62,8 +62,22 @@ public class Movement : NetworkBehaviour
 
     void Die()
     {
-        // Ne használd Application.Quit multiplayerben!
-        Destroy(gameObject);
+        Debug.Log("test1");
+        GameUI.Instance.GameplayUI.SetActive(false);
+        _camera.gameObject.SetActive(false);
+
+        GameUI.Instance.spectatorCamera.SetActive(true);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        GameUI.Instance.FightEnd.SetActive(true);
+
+        this.enabled = false;
+        animator.enabled = false;
+        rb.isKinematic = true;
+        Debug.Log("test2");
+
     }
     private IEnumerator WaitForGameUI()
     {

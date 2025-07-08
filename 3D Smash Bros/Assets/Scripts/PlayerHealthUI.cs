@@ -7,9 +7,6 @@ using Unity.Multiplayer.Playmode;
 
 public class PlayerHealthUI : MonoBehaviour
 {
-    public Image healthFillImage;
-    public Image[] circles;
-
     private Movement playerHealth;
 
     public void SetPlayerHealth(Movement health)
@@ -19,12 +16,12 @@ public class PlayerHealthUI : MonoBehaviour
 
     public void UpdateCircles(int combo)
     {
-        for (int i = 0; i < circles.Length; i++)
+        for (int i = 0; i < GameUI.Instance.circles.Length; i++)
         {
             if (i < combo)
-                circles[i].gameObject.SetActive(true);
+                GameUI.Instance.circles[i].gameObject.SetActive(true);
             else
-                circles[i].gameObject.SetActive(false);
+                GameUI.Instance.circles[i].gameObject.SetActive(false);
         }
     }
 
@@ -33,6 +30,6 @@ public class PlayerHealthUI : MonoBehaviour
         if (playerHealth == null) return;
 
         float healthPercent = playerHealth.HEALTH.Value / playerHealth.maxHealth;
-        healthFillImage.fillAmount = Mathf.Clamp01(healthPercent);
+        GameUI.Instance.healthFillImage.fillAmount = Mathf.Clamp01(healthPercent);
     }
 }

@@ -9,7 +9,12 @@ public class GameUI : MonoBehaviour
     public TextMeshProUGUI knockbackText;
     public Image clickCooldownImage;
     public Image clickGreenCooldownImage;
+    public GameObject FightEnd;
+    public GameObject GameplayUI;
     public PlayerHealthUI healthUI;
+    public GameObject spectatorCamera;
+    public Image healthFillImage;
+    public Image[] circles;
 
     private void Awake()
     {
