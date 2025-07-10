@@ -43,10 +43,10 @@ public class Movement : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner
     );
-
+    public bool isDead = false;
     public void TakeDamage(float amount)
     {
-        if (!IsOwner) return;
+        if (!IsOwner || isDead) return;
 
         HEALTH.Value -= amount;
         if (HEALTH.Value > maxHealth)
@@ -57,13 +57,44 @@ public class Movement : NetworkBehaviour
         if (HEALTH.Value <= 0)
         {
             Die();
+            isDead = true;
         }
+    }
+
+    [ClientRpc]
+    void ShowWinUIClientRpc()
+    {
+        Debug.Log(transform.name);
+        GameUI.Instance.GameplayUI.SetActive(false);
+        GameUI.Instance.winObject.SetActive(true);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        GameUI.Instance.FightEnd.SetActive(true);
     }
 
     void Die()
     {
-        Debug.Log("test1");
+        if (!IsOwner) return;
+
+        Debug.Log("ALIVE: " + GameUI.AlivePlayers.Count);
+        GameUI.AlivePlayers.Remove(this);
+        Debug.Log("ALIVE: " + GameUI.AlivePlayers.Count);
+
+        if (GameUI.AlivePlayers.Count == 1)
+        {
+            Movement winner = null;
+            foreach (var player in GameUI.AlivePlayers)
+                winner = player; // az egyetlen megmaradt
+
+            if (winner != null)
+            {
+                Debug.Log(winner.transform.name);
+                winner.ShowWinUIClientRpc();
+            }
+        }
+
         GameUI.Instance.GameplayUI.SetActive(false);
+        GameUI.Instance.loseObject.SetActive(true);
         _camera.gameObject.SetActive(false);
 
         GameUI.Instance.spectatorCamera.SetActive(true);
@@ -73,10 +104,7 @@ public class Movement : NetworkBehaviour
 
         GameUI.Instance.FightEnd.SetActive(true);
 
-        this.enabled = false;
-        animator.enabled = false;
-        rb.isKinematic = true;
-        Debug.Log("test2");
+        RequestDespawnServerRpc();
 
     }
     private IEnumerator WaitForGameUI()
@@ -95,6 +123,13 @@ public class Movement : NetworkBehaviour
             ui.SetPlayerHealth(this);
     }
 
+    [ServerRpc(RequireOwnership = false)]
+
+    private void RequestDespawnServerRpc()
+    {
+        NetworkObject.Despawn();
+    }
+
     public override void OnNetworkSpawn()
     {
         rb = GetComponent<Rigidbody>();
@@ -102,6 +137,7 @@ public class Movement : NetworkBehaviour
         pc = GetComponent<PlayerCombat>();
         _camera = GetComponentInChildren<Camera>();
         cameraTransform = _camera.transform;
+        GameUI.AlivePlayers.Add(this);
 
         if (!IsOwner)
         {

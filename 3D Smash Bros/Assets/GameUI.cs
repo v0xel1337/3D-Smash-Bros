@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,11 +11,16 @@ public class GameUI : MonoBehaviour
     public Image clickCooldownImage;
     public Image clickGreenCooldownImage;
     public GameObject FightEnd;
+    public GameObject winObject;
+    public GameObject loseObject;
     public GameObject GameplayUI;
     public PlayerHealthUI healthUI;
     public GameObject spectatorCamera;
     public Image healthFillImage;
     public Image[] circles;
+
+    public static HashSet<Movement> AlivePlayers = new HashSet<Movement>();
+
 
     private void Awake()
     {
