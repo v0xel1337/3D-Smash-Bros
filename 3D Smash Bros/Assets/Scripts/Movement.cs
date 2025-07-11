@@ -60,52 +60,35 @@ public class Movement : NetworkBehaviour
             isDead = true;
         }
     }
-
-    [ClientRpc]
-    void ShowWinUIClientRpc()
+    [ServerRpc]
+    public void UnregisterPlayerServerRpc()
     {
-        Debug.Log(transform.name);
-        GameUI.Instance.GameplayUI.SetActive(false);
-        GameUI.Instance.winObject.SetActive(true);
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        GameUI.Instance.FightEnd.SetActive(true);
+        GameManager.Instance.UnregisterPlayer(OwnerClientId);
     }
-
     void Die()
     {
         if (!IsOwner) return;
 
-        Debug.Log("ALIVE: " + GameUI.AlivePlayers.Count);
-        GameUI.AlivePlayers.Remove(this);
-        Debug.Log("ALIVE: " + GameUI.AlivePlayers.Count);
+        isDead = true;
 
-        if (GameUI.AlivePlayers.Count == 1)
+        if (IsServer)
         {
-            Movement winner = null;
-            foreach (var player in GameUI.AlivePlayers)
-                winner = player; // az egyetlen megmaradt
-
-            if (winner != null)
-            {
-                Debug.Log(winner.transform.name);
-                winner.ShowWinUIClientRpc();
-            }
+            GameManager.Instance.UnregisterPlayer(OwnerClientId);
+        }
+        else
+        {
+            UnregisterPlayerServerRpc();
         }
 
         GameUI.Instance.GameplayUI.SetActive(false);
         GameUI.Instance.loseObject.SetActive(true);
         _camera.gameObject.SetActive(false);
-
         GameUI.Instance.spectatorCamera.SetActive(true);
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
         GameUI.Instance.FightEnd.SetActive(true);
 
         RequestDespawnServerRpc();
-
     }
     private IEnumerator WaitForGameUI()
     {
@@ -137,7 +120,11 @@ public class Movement : NetworkBehaviour
         pc = GetComponent<PlayerCombat>();
         _camera = GetComponentInChildren<Camera>();
         cameraTransform = _camera.transform;
-        GameUI.AlivePlayers.Add(this);
+
+        if (IsServer)
+        {
+            GameManager.Instance.RegisterPlayer(OwnerClientId);
+        }
 
         if (!IsOwner)
         {
@@ -149,7 +136,6 @@ public class Movement : NetworkBehaviour
         Cursor.visible = false;
 
         StartCoroutine(WaitForGameUI());
-
     }
 
     private string lastPlayedAnimation = "";
