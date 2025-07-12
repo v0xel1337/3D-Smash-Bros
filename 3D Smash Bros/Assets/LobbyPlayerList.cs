@@ -8,6 +8,7 @@ public class LobbyPlayerList : NetworkBehaviour
 {
     public static LobbyPlayerList Instance;
     public GameObject waitingLobby;
+    public GameObject main;
 
 
     private void Awake()
@@ -29,6 +30,12 @@ public class LobbyPlayerList : NetworkBehaviour
 
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         }
+
+        if (LobbyManager.Instance.playerNames.Count != 0)
+        {
+            main.SetActive(false);
+            waitingLobby.SetActive(true);
+        }    
 
         RelayManager.Instance.UpdatePlayerListUI(LobbyManager.Instance.playerNames);
     }

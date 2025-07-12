@@ -3880,7 +3880,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  waitingLobby: {fileID: 0}
+  waitingLobby: {fileID: 109764928}
+  main: {fileID: 364516365}
 --- !u!1 &1999476404
 GameObject:
   m_ObjectHideFlags: 0
