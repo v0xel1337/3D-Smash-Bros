@@ -2,12 +2,13 @@ using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.SceneManagement;
 
 public class LobbyPlayerList : NetworkBehaviour
 {
     public static LobbyPlayerList Instance;
+    public GameObject waitingLobby;
 
-    public NetworkList<FixedString64Bytes> playerNames = new NetworkList<FixedString64Bytes>();
 
     private void Awake()
     {
@@ -16,20 +17,27 @@ public class LobbyPlayerList : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        playerNames.OnListChanged += OnPlayerListChanged;
+        LobbyManager.Instance.playerNames.OnListChanged += OnPlayerListChanged;
 
         if (IsServer)
         {
-            AddPlayerName(NetworkManager.Singleton.LocalClientId);
+            // Csak akkor adjuk hozzá a hostot, ha még nincs senki a listában
+            if (LobbyManager.Instance.playerNames.Count == 0)
+            {
+                AddPlayerName(NetworkManager.Singleton.LocalClientId);
+            }
+
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         }
+
+        RelayManager.Instance.UpdatePlayerListUI(LobbyManager.Instance.playerNames);
     }
 
     private void OnDestroy()
     {
         if (NetworkManager.Singleton != null)
         {
-            playerNames.OnListChanged -= OnPlayerListChanged;
+            LobbyManager.Instance.playerNames.OnListChanged -= OnPlayerListChanged;
 
             if (IsServer)
             {
@@ -54,14 +62,14 @@ public class LobbyPlayerList : NetworkBehaviour
     {
         if (IsServer)
         {
-            int playerNumber = playerNames.Count + 1;
+            int playerNumber = LobbyManager.Instance.playerNames.Count + 1;
             string playerName = $"PLAYER {playerNumber}";
-            playerNames.Add(playerName);
+            LobbyManager.Instance.playerNames.Add(playerName);
         }
     }
 
     private void OnPlayerListChanged(NetworkListEvent<FixedString64Bytes> change)
     {
-        RelayManager.Instance.UpdatePlayerListUI(playerNames);
+        RelayManager.Instance.UpdatePlayerListUI(LobbyManager.Instance.playerNames);
     }
 }
