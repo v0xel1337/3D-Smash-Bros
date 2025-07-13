@@ -11,15 +11,18 @@ public class GameStarter : NetworkBehaviour
 
         foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            Vector3 spawnPos = GetSpawnPosition(clientId);
-            GameObject player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
-            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+            // Ellenõrizzük, hogy már van-e player objektum
+            if (NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject == null)
+            {
+                Vector3 spawnPos = GetSpawnPosition(clientId);
+                GameObject player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
+                player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+            }
         }
     }
 
     private Vector3 GetSpawnPosition(ulong clientId)
     {
-        // Egyszerû pozíció logika
         return new Vector3(clientId * 2f, 0, 0);
     }
 }

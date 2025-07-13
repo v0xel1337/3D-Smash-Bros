@@ -33,11 +33,12 @@ public class LobbyPlayerList : NetworkBehaviour
 
         if (LobbyManager.Instance.playerNames.Count != 0)
         {
+            RelayManager.Instance.UpdatePlayerListUI(LobbyManager.Instance.playerNames);
             main.SetActive(false);
             waitingLobby.SetActive(true);
         }    
 
-        RelayManager.Instance.UpdatePlayerListUI(LobbyManager.Instance.playerNames);
+        
     }
 
     private void OnDestroy()

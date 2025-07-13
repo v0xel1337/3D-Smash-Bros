@@ -14,6 +14,7 @@ using UnityEngine.SceneManagement;
 public class RelayManager : MonoBehaviour
 {
     public static RelayManager Instance;
+    public static string JoinCode { get; private set; }
 
     [SerializeField] Button hostButton;
     [SerializeField] Button joinButton;
@@ -43,6 +44,7 @@ public class RelayManager : MonoBehaviour
     {
         Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);
         string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+        JoinCode = joinCode;
         codeText.text = "Code: " + joinCode;
 
         var relayServerData = new RelayServerData(allocation, "dtls");
@@ -57,6 +59,7 @@ public class RelayManager : MonoBehaviour
     {
         var joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
         var relayServerData = new RelayServerData(joinAllocation, "dtls");
+        JoinCode = joinCode;
         NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
         NetworkManager.Singleton.StartClient();
@@ -82,6 +85,9 @@ public class RelayManager : MonoBehaviour
             var playerNameText = Instantiate(playerNamePrefab, playerListContainer);
             playerNameText.text = name.ToString();
         }
+        Debug.Log(JoinCode);
+        codeText.text = "Code: " + JoinCode;
+
     }
 
     public void StartGame()
