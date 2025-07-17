@@ -11,15 +11,23 @@ public class GameStarter : NetworkBehaviour
 
         foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            // Ellenõrizzük, hogy már van-e player objektum
-            if (NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject == null)
+            var client = NetworkManager.Singleton.ConnectedClients[clientId];
+            var existingPlayer = client.PlayerObject;
+
+            // Ha van már PlayerObject, despawnoljuk és töröljük
+            if (existingPlayer != null)
             {
-                Vector3 spawnPos = GetSpawnPosition(clientId);
-                GameObject player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
-                player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+                existingPlayer.Despawn();
+                Destroy(existingPlayer.gameObject);
             }
+
+            // Új játékos objektum példányosítása és spawnolása
+            Vector3 spawnPos = GetSpawnPosition(clientId);
+            GameObject player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
+            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         }
     }
+
 
     private Vector3 GetSpawnPosition(ulong clientId)
     {

@@ -23,6 +23,7 @@ public class PlayerCombat : NetworkBehaviour
     {
         if (IsOwner)
         {
+            percent.Value = 0;
             StartCoroutine(WaitForUIReferences());
         }
 
@@ -44,7 +45,9 @@ public class PlayerCombat : NetworkBehaviour
     public void TakeDamage(float amount, Vector3 knockback)
     {
         if (!IsOwner) return;
-        
+
+        Debug.Log(percent.Value);
+        Debug.Log(amount);
         percent.Value += amount;
 
         float totalKnockback = knockback.magnitude + (percent.Value * 0.1f);

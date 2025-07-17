@@ -8,6 +8,7 @@ public class ReturnToLobby : NetworkBehaviour
     {
         if (IsHost)
             return;
+        FindObjectOfType<BombSpawner>().DeleteBombs();
 
         NetworkManager.SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
     }
