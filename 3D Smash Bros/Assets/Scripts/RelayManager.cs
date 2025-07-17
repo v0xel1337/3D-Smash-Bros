@@ -16,6 +16,7 @@ public class RelayManager : MonoBehaviour
     public static RelayManager Instance;
     public static string JoinCode { get; private set; }
 
+    [SerializeField] GameObject startGameButton;
     [SerializeField] Button hostButton;
     [SerializeField] Button joinButton;
     [SerializeField] TMP_InputField joinInput;
@@ -70,6 +71,10 @@ public class RelayManager : MonoBehaviour
     void ShowWaitingLobby(string joinCode)
     {
         waitingLobbyPanel.SetActive(true);
+        if (NetworkManager.Singleton.IsHost)
+        {
+            startGameButton.SetActive(true);
+        }
         codeText.text = "Code: " + joinCode;
     }
 

@@ -1523,7 +1523,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1186971588
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3834,6 +3834,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecaee53ab64ed4545bbdb2ea2ea5db6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startGameButton: {fileID: 1186971587}
   hostButton: {fileID: 1795359448}
   joinButton: {fileID: 1758137456}
   joinInput: {fileID: 1706939436}

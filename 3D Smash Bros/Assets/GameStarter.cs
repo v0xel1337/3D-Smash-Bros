@@ -31,6 +31,6 @@ public class GameStarter : NetworkBehaviour
 
     private Vector3 GetSpawnPosition(ulong clientId)
     {
-        return new Vector3(clientId * 2f, 0, 0);
+        return new Vector3(53f + clientId * 2f, 0, 61f);
     }
 }
