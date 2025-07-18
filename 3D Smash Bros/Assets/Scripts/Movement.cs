@@ -10,7 +10,7 @@ public class Movement : NetworkBehaviour
     [SerializeField]
     private float speed = 5.0f;
 
-   	[SerializeField] private float jumpForce = 700.0f;
+   	[SerializeField] private float jumpForce = 7;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundCheckDistance = 1.1f;
 
@@ -314,9 +314,9 @@ public class Movement : NetworkBehaviour
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // reset vertical velocity
-            rb.AddForce(Vector3.up * jumpForce * 10, ForceMode.Impulse);
+            rb.AddForce(Vector3.up * 70, ForceMode.Impulse);
         } else if (!isGrounded){
-		   	rb.AddForce(Vector3.up * -0.1f * jumpForce, ForceMode.Impulse);
+		   	rb.AddForce(Vector3.up * -0.1f * 15, ForceMode.Impulse);
 		}
 		
         moveInput = moveInput.normalized;

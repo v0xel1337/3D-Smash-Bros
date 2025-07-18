@@ -37,6 +37,11 @@ public class RelayManager : MonoBehaviour
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
 
+        if (NetworkManager.Singleton.IsHost)
+        {
+            startGameButton.SetActive(true);
+        }
+
         hostButton.onClick.AddListener(CreateRelay);
         joinButton.onClick.AddListener(() => JoinRelay(joinInput.text));
     }
