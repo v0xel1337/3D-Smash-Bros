@@ -8,9 +8,10 @@ using UnityEngine.UI;
 public class Movement : NetworkBehaviour
 {
     [SerializeField]
-    private float speed = 5.0f;
+    private float defaultSpeed = 5.0f;
+    private float currentSpeed = 5.0f;
 
-   	[SerializeField] private float jumpForce = 7;
+    [SerializeField] private float jumpForce = 7;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private float groundCheckDistance = 1.1f;
 
@@ -28,9 +29,12 @@ public class Movement : NetworkBehaviour
 
 
     public Image cooldownImage; // ide húzod be az UI Image-t
+    public Image QcooldownImage;
     public Image cooldownGreenImage;
     private bool isAbilityOnCooldown = false;
+    private bool isQAbilityOnCooldown = false;
     private float cooldownTimer = 0f;
+    private float cooldownQTimer = 0f;
     public float abilityCooldownTime = 1f;
     private float greenCooldownTimer = 0f;
     private float greenCooldownTime = 5f;
@@ -99,6 +103,7 @@ public class Movement : NetworkBehaviour
         }
 
         cooldownImage = GameUI.Instance.clickCooldownImage;
+        QcooldownImage = GameUI.Instance.QCooldownImage;
         cooldownGreenImage = GameUI.Instance.clickGreenCooldownImage;
         ui = GameUI.Instance.healthUI;
 
@@ -142,13 +147,14 @@ public class Movement : NetworkBehaviour
     void ActivateAbility()
     {
         isAbilityOnCooldown = true;
-        
+
         cooldownTimer = 0f;
 
         if (cooldownImage != null)
             cooldownImage.fillAmount = 0f;
 
     }
+
     void OnClick()
     {
         if (animator.GetBool("inSubStateMachine"))
@@ -238,13 +244,6 @@ public class Movement : NetworkBehaviour
 
 
 
-        if (Input.GetKey(KeyCode.LeftShift) /*&& notSlowed*/){
-			speed = 10.0f;
-		} else {
-			speed = 5.0f;
-		}
-
-
         if (animator.GetBool("inSubStateMachine") && !stateInfo.IsName("Roll"))
         {
             moveInput = Vector3.zero;
@@ -277,16 +276,38 @@ public class Movement : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Q))
         {
             animator.SetTrigger("Roll");
+            currentSpeed = defaultSpeed * 4;
         }
 
         if (Input.GetKey(KeyCode.Q))
         {
             animator.SetBool("IsRolling", true);
+
+            foreach (Movement enemy in playersInside)
+            {
+                if (enemy != null) // Ne sebezd magad
+                {
+                    enemy.PlayAnimationOnEnemy(10, 12, transform.position);
+                    Debug.Log(enemy.transform.name);
+                }
+            }
+        }
+        else
+        {
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                currentSpeed = 10.0f;
+            }
+            else
+            {
+                currentSpeed = defaultSpeed;
+            }
         }
 
         if (Input.GetKeyUp(KeyCode.Q))
         {
             animator.SetBool("IsRolling", false);
+            currentSpeed = defaultSpeed;
         }
 
         if (!isGreenOnCooldown)
@@ -314,9 +335,9 @@ public class Movement : NetworkBehaviour
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // reset vertical velocity
-            rb.AddForce(Vector3.up * 70, ForceMode.Impulse);
+            rb.AddForce(Vector3.up * jumpForce * 10, ForceMode.Impulse);
         } else if (!isGrounded){
-		   	rb.AddForce(Vector3.up * -0.1f * 15, ForceMode.Impulse);
+		   	rb.AddForce(Vector3.up * -0.1f * jumpForce, ForceMode.Impulse);
 		}
 		
         moveInput = moveInput.normalized;
@@ -330,7 +351,8 @@ public class Movement : NetworkBehaviour
     void FixedUpdate()
     {
         // Apply movement using Rigidbody
-        Vector3 targetPosition = rb.position + moveInput * speed * Time.fixedDeltaTime;
+        Debug.Log(currentSpeed);
+        Vector3 targetPosition = rb.position + moveInput * currentSpeed * Time.fixedDeltaTime;
         rb.MovePosition(targetPosition);
     }
 
