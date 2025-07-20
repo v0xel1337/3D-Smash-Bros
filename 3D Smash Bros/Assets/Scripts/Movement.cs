@@ -186,7 +186,8 @@ public class Movement : NetworkBehaviour
             lastPlayedAnimation = nextAnimation;
         }
     }
-
+    private float qAbilityInterval = 1f;
+    private float qAbilityTimer = 0f;
     void Update()
     {
         if (!IsOwner)
@@ -282,15 +283,6 @@ public class Movement : NetworkBehaviour
         if (Input.GetKey(KeyCode.Q))
         {
             animator.SetBool("IsRolling", true);
-
-            foreach (Movement enemy in playersInside)
-            {
-                if (enemy != null) // Ne sebezd magad
-                {
-                    enemy.PlayAnimationOnEnemy(10, 12, transform.position);
-                    Debug.Log(enemy.transform.name);
-                }
-            }
         }
         else
         {
@@ -308,6 +300,7 @@ public class Movement : NetworkBehaviour
         {
             animator.SetBool("IsRolling", false);
             currentSpeed = defaultSpeed;
+            playersInside.Clear();
         }
 
         if (!isGreenOnCooldown)
@@ -356,7 +349,19 @@ public class Movement : NetworkBehaviour
         rb.MovePosition(targetPosition);
     }
 
-
+    public void RollDamage()
+    {
+        foreach (Movement enemy in playersInside)
+        {
+            if (enemy != null)
+            {
+                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
+                enemy.PlayGetHitAnimation();
+                Debug.Log("TEST: " + enemy.transform.name);
+                qAbilityTimer = 0f; // reset timer
+            }
+        }
+    }
 
     public void PerformPunchHit(float punchRange)
     {
@@ -440,9 +445,6 @@ public class Movement : NetworkBehaviour
 
     public void PlayAnimationOnEnemy(float amount, float knockbackForce, Vector3 attackerPosition)
     {
-        Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-        pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-        // Ha a szerver (host) futtatja ezt, de nem ő a target, akkor küldjön ClientRpc-t a kliensnek
         ClientRpcParams rpcParams = new ClientRpcParams
         {
             Send = new ClientRpcSendParams
@@ -452,6 +454,11 @@ public class Movement : NetworkBehaviour
         };
 
         PlayGetHitAnimationClientRpc(rpcParams);
+
+        Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+        pc.TakeDamage(amount, knockbackDirection * knockbackForce);
+        // Ha a szerver (host) futtatja ezt, de nem ő a target, akkor küldjön ClientRpc-t a kliensnek
+
     }
 
     void FaceCameraDirection()
@@ -482,6 +489,11 @@ public class Movement : NetworkBehaviour
     void PlayGetHitAnimationClientRpc(ClientRpcParams rpcParams = default)
     {
         if (!IsOwner) return; // csak a célzott kliens játssza le
+        animator.SetTrigger("GetHit");
+    }
+
+    void PlayGetHitAnimation()
+    {
         animator.SetTrigger("GetHit");
     }
 }

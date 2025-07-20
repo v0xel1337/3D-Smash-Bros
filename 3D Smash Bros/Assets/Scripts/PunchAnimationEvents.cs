@@ -20,6 +20,9 @@ public class PunchAnimationEvents : MonoBehaviour
             case "Slam":
                 movementScript.DamageZoneAreaCheck("Slam");
                 break;
+            case "Roll":
+                movementScript.RollDamage();
+                break;
         }
     }
 
