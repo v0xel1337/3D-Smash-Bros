@@ -12305,7 +12305,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   knockbackText: {fileID: 6237659636752714170}
   clickCooldownImage: {fileID: 4009630759862431119}
-  QCooldownImage: {fileID: 0}
+  QCooldownImage: {fileID: 3262022875204928762}
   clickGreenCooldownImage: {fileID: 8465804453925409316}
   FightEnd: {fileID: 1251508434}
   winObject: {fileID: 1152231863}

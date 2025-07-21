@@ -40,6 +40,14 @@ public class Movement : NetworkBehaviour
     private float greenCooldownTime = 5f;
     private bool isGreenOnCooldown = false;
 
+    private float cooldownPercent = 100f;
+    private float drainRate = 10f; // 1% / 0.1s = 10% / s
+    private float regenRate = 10f; // 1% / 0.1s = 10% / s
+    private float regenDelay = 1f; // 1 másodperc után kezd töltődni
+
+    private float lastUsedTime = -999f;
+    private bool isUsing = false;
+    public bool isUsable = true;
 
     // NetworkVariable szinkronizálja a hálózaton a health értékét
     public NetworkVariable<float> HEALTH = new NetworkVariable<float>(
@@ -273,14 +281,53 @@ public class Movement : NetworkBehaviour
             animator.SetTrigger("Punch");
         }
 
+        //////////////
+        if (Input.GetKey(KeyCode.Q) && cooldownPercent > 0f)
+        {
+            // Képesség használatban
+            isUsing = true;
+            lastUsedTime = Time.time;
+
+            cooldownPercent -= drainRate * Time.deltaTime;
+            cooldownPercent = Mathf.Clamp(cooldownPercent, 0f, 100f);
+
+            // Itt történik a képesség hatása, ha kell
+            Debug.Log("Képesség aktív! Cooldown: " + Mathf.RoundToInt(cooldownPercent) + "%");
+        }
+        else
+        {
+            isUsing = false;
+
+            // Ha eltelt legalább 1 másodperc a használat óta
+            if (Time.time - lastUsedTime >= regenDelay && cooldownPercent < 100f)
+            {
+                cooldownPercent += regenRate * Time.deltaTime;
+                cooldownPercent = Mathf.Clamp(cooldownPercent, 0f, 100f);
+            }
+        }
+
+        if (QcooldownImage != null)
+        {
+            QcooldownImage.fillAmount = cooldownPercent / 100f;
+        }
+
+        if (cooldownPercent <= 0f)
+        {
+            isUsable = false;
+        }
+        else if (cooldownPercent > 1f)
+        {
+            isUsable = true;
+        }
+
         // Ne engedje újraindítani a gurulást, ha még tart
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q) && isUsable)
         {
             animator.SetTrigger("Roll");
             currentSpeed = defaultSpeed * 4;
         }
 
-        if (Input.GetKey(KeyCode.Q))
+        if (Input.GetKey(KeyCode.Q) && isUsable)
         {
             animator.SetBool("IsRolling", true);
         }
@@ -296,7 +343,7 @@ public class Movement : NetworkBehaviour
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.Q))
+        if (Input.GetKeyUp(KeyCode.Q) || !isUsable)
         {
             animator.SetBool("IsRolling", false);
             currentSpeed = defaultSpeed;
