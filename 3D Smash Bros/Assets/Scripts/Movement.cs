@@ -45,6 +45,10 @@ public class Movement : NetworkBehaviour
     private float regenRate = 10f; // 1% / 0.1s = 10% / s
     private float regenDelay = 1f; // 1 másodperc után kezd töltődni
 
+    public float qCooldownDelay = 3f;
+    public float qCooldownTimer = 0f;
+    public bool isQDelayActive = false;
+
     private float lastUsedTime = -999f;
     private bool isUsing = false;
     public bool isUsable = true;
@@ -282,7 +286,7 @@ public class Movement : NetworkBehaviour
         }
 
         //////////////
-        if (Input.GetKey(KeyCode.Q) && cooldownPercent > 0f)
+        if (Input.GetKey(KeyCode.Q) && isUsable)
         {
             // Képesség használatban
             isUsing = true;
@@ -311,15 +315,6 @@ public class Movement : NetworkBehaviour
             QcooldownImage.fillAmount = cooldownPercent / 100f;
         }
 
-        if (cooldownPercent <= 0f)
-        {
-            isUsable = false;
-        }
-        else if (cooldownPercent > 1f)
-        {
-            isUsable = true;
-        }
-
         // Ne engedje újraindítani a gurulást, ha még tart
         if (Input.GetKeyDown(KeyCode.Q) && isUsable)
         {
@@ -343,11 +338,32 @@ public class Movement : NetworkBehaviour
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.Q) || !isUsable)
+
+
+        if (isQDelayActive)
         {
-            animator.SetBool("IsRolling", false);
-            currentSpeed = defaultSpeed;
-            playersInside.Clear();
+            qCooldownTimer += Time.deltaTime;
+
+            if (qCooldownTimer >= qCooldownDelay)
+            {
+                isQDelayActive = false;
+                Debug.Log("KÉSZ " + cooldownPercent);
+                isUsable = cooldownPercent > 1f; // csak akkor használható, ha van töltés is
+            }
+        }
+        else
+        {
+            isUsable = cooldownPercent > 1f;
+            if (Input.GetKeyUp(KeyCode.Q) || !isUsable)
+            {
+                animator.SetBool("IsRolling", false);
+                currentSpeed = defaultSpeed;
+                playersInside.Clear();
+
+                isQDelayActive = true;        // elindul a várakozás
+                qCooldownTimer = 0f;          // időzítő nullázása
+                isUsable = false;             // azonnal letiltjuk a képességet
+            }
         }
 
         if (!isGreenOnCooldown)
