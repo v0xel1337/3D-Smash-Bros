@@ -656,6 +656,10 @@ MonoBehaviour:
   QcooldownImage: {fileID: 0}
   cooldownGreenImage: {fileID: 0}
   abilityCooldownTime: 1
+  qCooldownDelay: 3
+  qCooldownTimer: 0
+  isQDelayActive: 0
+  isUsable: 1
   HEALTH:
     m_InternalValue: 100
   isDead: 0

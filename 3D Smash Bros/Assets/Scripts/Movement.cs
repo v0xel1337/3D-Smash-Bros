@@ -285,6 +285,24 @@ public class Movement : NetworkBehaviour
             animator.SetTrigger("Punch");
         }
 
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit[] hits = Physics.RaycastAll(ray);
+
+            foreach (RaycastHit hit in hits)
+            {
+                Debug.Log("Hit: " + hit.collider.transform.name);
+
+                if (hit.collider.CompareTag("Stun"))
+                {
+                    animator.SetTrigger("Stun");
+                    hit.collider.transform.parent.GetComponent<Animator>().Play("Stun");
+                    Debug.Log("Stun Circle clicked!");
+                }
+            }
+        }
+
         //////////////
         if (Input.GetKey(KeyCode.Q) && isUsable)
         {
