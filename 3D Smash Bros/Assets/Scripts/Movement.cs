@@ -296,8 +296,7 @@ public class Movement : NetworkBehaviour
 
                 if (hit.collider.CompareTag("Stun"))
                 {
-                    animator.SetTrigger("Stun");
-                    hit.collider.transform.parent.GetComponent<Animator>().Play("Stun");
+                    hit.collider.transform.parent.GetComponent<Stun>().PlayStunAnimationServerRpc();
                     Debug.Log("Stun Circle clicked!");
                 }
             }
