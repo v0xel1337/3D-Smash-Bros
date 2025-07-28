@@ -572,7 +572,7 @@ public class Movement : NetworkBehaviour
         animator.SetTrigger("GetHit");
     }
 
-    void PlayGetHitAnimation()
+    public void PlayGetHitAnimation()
     {
         animator.SetTrigger("GetHit");
     }

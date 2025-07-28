@@ -4,26 +4,27 @@ using UnityEngine;
 
 public class Stun : NetworkBehaviour
 {
-    private List<GameObject> playersInside = new List<GameObject>();
+    public List<Movement> playersInside = new List<Movement>();
     public Animator animator;
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && !playersInside.Contains(other.gameObject))
+        Movement pcTemp = other.GetComponent<Movement>();
+        if (pcTemp != null)
         {
-            playersInside.Add(other.gameObject);
-            Debug.Log($"{other.name} belépett a triggerbe.");
+            playersInside.Add(pcTemp);
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player") && playersInside.Contains(other.gameObject))
+        Movement pcTemp = other.GetComponent<Movement>();
+        if (pcTemp != null && playersInside.Contains(pcTemp))
         {
-            playersInside.Remove(other.gameObject);
-            Debug.Log($"{other.name} kilépett a triggerbõl.");
+            playersInside.Remove(pcTemp);
         }
     }
+
 
     [ServerRpc(RequireOwnership = false)]
     public void PlayStunAnimationServerRpc()
@@ -55,9 +56,14 @@ public class Stun : NetworkBehaviour
         else
         {
             Debug.Log($"Játékosok a triggerben ({playersInside.Count} db):");
-            foreach (GameObject player in playersInside)
+
+            foreach (Movement enemy in playersInside)
             {
-                Debug.Log($"- {player.name}");
+                if (enemy != null)
+                {
+                    enemy.PlayAnimationOnEnemy(10, 12, transform.position);
+                    enemy.PlayGetHitAnimation();
+                }
             }
         }
     }

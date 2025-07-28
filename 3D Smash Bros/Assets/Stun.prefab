@@ -205,7 +205,6 @@ GameObject:
   - component: {fileID: 3904642951795425279}
   - component: {fileID: 4965377792738742565}
   - component: {fileID: 4713090965229898966}
-  - component: {fileID: 634774180638561412}
   m_Layer: 0
   m_Name: Stun
   m_TagString: Untagged
@@ -281,27 +280,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &634774180638561412
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8345300838493758639}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8607434087039542790
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,6 +292,7 @@ GameObject:
   - component: {fileID: 4939297307544507066}
   - component: {fileID: 3216944315810855858}
   - component: {fileID: 2095905034793040219}
+  - component: {fileID: 8865444569049488744}
   m_Layer: 0
   m_Name: Stun
   m_TagString: Untagged
@@ -400,7 +379,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  playersInside: []
   animator: {fileID: 4939297307544507066}
+--- !u!136 &8865444569049488744
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8607434087039542790}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 4.1254196
+  m_Height: 36.75831
+  m_Direction: 1
+  m_Center: {x: -7.908783, y: 3.2557068, z: 11.844318}
 --- !u!1 &8697137388766060763
 GameObject:
   m_ObjectHideFlags: 0
@@ -412,7 +415,6 @@ GameObject:
   - component: {fileID: 8010658092466315960}
   - component: {fileID: 3011355618256681888}
   - component: {fileID: 7894942423960654502}
-  - component: {fileID: 6105096851712443889}
   m_Layer: 0
   m_Name: Outline + Trigger
   m_TagString: Untagged
@@ -488,25 +490,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &6105096851712443889
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8697137388766060763}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
