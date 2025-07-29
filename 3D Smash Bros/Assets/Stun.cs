@@ -46,8 +46,7 @@ public class Stun : NetworkBehaviour
         }
     } 
 
-    [ServerRpc(RequireOwnership = false)]
-    public void CheckPlayersInsideServerRpc()
+    public void CheckPlayersInside()
     {
         if (playersInside.Count == 0)
         {
@@ -66,5 +65,12 @@ public class Stun : NetworkBehaviour
                 }
             }
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+
+    private void RequestDespawnServerRpc()
+    {
+        NetworkObject.Despawn();
     }
 }
