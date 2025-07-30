@@ -10,6 +10,7 @@ public class GameUI : MonoBehaviour
     public TextMeshProUGUI knockbackText;
     public Image clickCooldownImage;
     public Image QCooldownImage;
+    public Image ECooldownImage;
     public Image clickGreenCooldownImage;
     public GameObject FightEnd;
     public GameObject winObject;

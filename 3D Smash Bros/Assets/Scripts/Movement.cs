@@ -30,6 +30,7 @@ public class Movement : NetworkBehaviour
 
     public Image cooldownImage; // ide húzod be az UI Image-t
     public Image QcooldownImage;
+    public Image EcooldownImage;
     public Image cooldownGreenImage;
     private bool isAbilityOnCooldown = false;
     private bool isQAbilityOnCooldown = false;
@@ -48,6 +49,10 @@ public class Movement : NetworkBehaviour
     public float qCooldownDelay = 3f;
     public float qCooldownTimer = 0f;
     public bool isQDelayActive = false;
+
+    public float eCooldownDelay = 4f;
+    private float eCooldownTimer = 0f;
+    private bool isEUsable = true;
 
     private float lastUsedTime = -999f;
     private bool isUsing = false;
@@ -116,6 +121,7 @@ public class Movement : NetworkBehaviour
 
         cooldownImage = GameUI.Instance.clickCooldownImage;
         QcooldownImage = GameUI.Instance.QCooldownImage;
+        EcooldownImage = GameUI.Instance.ECooldownImage;
         cooldownGreenImage = GameUI.Instance.clickGreenCooldownImage;
         ui = GameUI.Instance.healthUI;
 
@@ -285,7 +291,7 @@ public class Movement : NetworkBehaviour
             animator.SetTrigger("Punch");
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && isEUsable)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit[] hits = Physics.RaycastAll(ray);
@@ -298,7 +304,22 @@ public class Movement : NetworkBehaviour
                 {
                     hit.collider.transform.parent.GetComponent<Stun>().PlayStunAnimationServerRpc();
                     Debug.Log("Stun Circle clicked!");
+                    eCooldownTimer = 0f;
+                    isEUsable = false;
                 }
+            }
+        }
+
+        // E cooldown logika
+        if (!isEUsable)
+        {
+            eCooldownTimer += Time.deltaTime;
+            EcooldownImage.fillAmount = eCooldownTimer / eCooldownDelay;
+
+            if (eCooldownTimer >= eCooldownDelay)
+            {
+                isEUsable = true;
+                Debug.Log("E ability is ready again!");
             }
         }
 
@@ -354,7 +375,6 @@ public class Movement : NetworkBehaviour
                 currentSpeed = defaultSpeed;
             }
         }
-
 
 
         if (isQDelayActive)
