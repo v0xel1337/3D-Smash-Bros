@@ -322,6 +322,11 @@ public class Movement : NetworkBehaviour
             }
         }
 
+        if (Input.GetKeyDown(KeyCode.R) && !animator.GetBool("inSubStateMachine"))
+        {
+            animator.SetTrigger("Lay");
+        }
+
         // E cooldown logika
         if (!isEUsable)
         {
@@ -443,8 +448,21 @@ public class Movement : NetworkBehaviour
             {
                 enemy.PlayAnimationOnEnemy(10, 12, transform.position);
                 enemy.PlayGetHitAnimation();
-                Debug.Log("TEST: " + enemy.transform.name);
+                //Debug.Log("TEST: " + enemy.transform.name);
                 qAbilityTimer = 0f; // reset timer
+            }
+        }
+    }
+
+    public void LayDamage()
+    {
+        foreach (Movement enemy in playersInside)
+        {
+            if (enemy != null)
+            {
+                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
+                enemy.PlayGetHitAnimation();
+                //Debug.Log("TEST: " + enemy.transform.name);
             }
         }
     }

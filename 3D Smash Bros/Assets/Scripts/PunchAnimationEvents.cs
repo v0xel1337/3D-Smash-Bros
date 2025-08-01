@@ -23,6 +23,9 @@ public class PunchAnimationEvents : MonoBehaviour
             case "Roll":
                 movementScript.RollDamage();
                 break;
+            case "Lay":
+                movementScript.LayDamage();
+                break;
         }
     }
 
