@@ -62,6 +62,7 @@ public class Stun : NetworkBehaviour
                 {
                     enemy.PlayAnimationOnEnemy(10, 12, transform.position);
                     enemy.PlayGetHitAnimation();
+                    enemy.Stun(5f);
                 }
             }
         }

@@ -41,22 +41,16 @@ public class Movement : NetworkBehaviour
     private float greenCooldownTime = 5f;
     private bool isGreenOnCooldown = false;
 
-    private float cooldownPercent = 100f;
-    private float drainRate = 10f; // 1% / 0.1s = 10% / s
-    private float regenRate = 10f; // 1% / 0.1s = 10% / s
-    private float regenDelay = 1f; // 1 másodperc után kezd töltődni
-
-    public float qCooldownDelay = 3f;
-    public float qCooldownTimer = 0f;
-    public bool isQDelayActive = false;
+    public float qDelayAfterUse = 1f;
+    private float qTimerAfterUse = 0f;
+    public float qCooldownDelay = 10f;
+    private float qCooldownTimer = 0f;
+    private bool isQUsable = true;
+    private bool isQPressed = true;
 
     public float eCooldownDelay = 4f;
     private float eCooldownTimer = 0f;
     private bool isEUsable = true;
-
-    private float lastUsedTime = -999f;
-    private bool isUsing = false;
-    public bool isUsable = true;
 
     // NetworkVariable szinkronizálja a hálózaton a health értékét
     public NetworkVariable<float> HEALTH = new NetworkVariable<float>(
@@ -136,6 +130,11 @@ public class Movement : NetworkBehaviour
         NetworkObject.Despawn();
     }
 
+    private void Start()
+    {
+        qCooldownTimer = qCooldownDelay;
+    }
+
     public override void OnNetworkSpawn()
     {
         rb = GetComponent<Rigidbody>();
@@ -211,6 +210,19 @@ public class Movement : NetworkBehaviour
         if (!IsOwner)
         {
             return;
+        }
+
+        if (isStunned)
+        {
+            if (Time.time >= stunEndTime)
+            {
+                isStunned = false;
+                // Esetleg animáció visszaállítása itt
+            }
+            else
+            {
+                return; // ne csináljon semmit, ha stunban van
+            }
         }
 
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // 0 = base layer
@@ -323,49 +335,34 @@ public class Movement : NetworkBehaviour
             }
         }
 
-        //////////////
-        if (Input.GetKey(KeyCode.Q) && isUsable)
-        {
-            // Képesség használatban
-            isUsing = true;
-            lastUsedTime = Time.time;
-
-            cooldownPercent -= drainRate * Time.deltaTime;
-            cooldownPercent = Mathf.Clamp(cooldownPercent, 0f, 100f);
-
-            // Itt történik a képesség hatása, ha kell
-            Debug.Log("Képesség aktív! Cooldown: " + Mathf.RoundToInt(cooldownPercent) + "%");
-        }
-        else
-        {
-            isUsing = false;
-
-            // Ha eltelt legalább 1 másodperc a használat óta
-            if (Time.time - lastUsedTime >= regenDelay && cooldownPercent < 100f)
-            {
-                cooldownPercent += regenRate * Time.deltaTime;
-                cooldownPercent = Mathf.Clamp(cooldownPercent, 0f, 100f);
-            }
-        }
-
-        if (QcooldownImage != null)
-        {
-            QcooldownImage.fillAmount = cooldownPercent / 100f;
-        }
-
         // Ne engedje újraindítani a gurulást, ha még tart
-        if (Input.GetKeyDown(KeyCode.Q) && isUsable)
+        if (Input.GetKeyDown(KeyCode.Q) && isQUsable && !animator.GetBool("inSubStateMachine"))
         {
             animator.SetTrigger("Roll");
             currentSpeed = defaultSpeed * 4;
+            isQPressed = true;
         }
 
-        if (Input.GetKey(KeyCode.Q) && isUsable)
+        if (Input.GetKey(KeyCode.Q) && isQUsable && isQPressed)
         {
-            animator.SetBool("IsRolling", true);
+            if (qCooldownTimer > 0)
+            {
+                qCooldownTimer -= Time.deltaTime;
+                animator.SetBool("IsRolling", true);
+            }
+            else
+            {
+                qTimerAfterUse = 0;
+                isQUsable = false;
+                isQPressed = false;
+                animator.SetBool("IsRolling", false);
+            }
         }
         else
         {
+            if(qCooldownTimer <= qCooldownDelay)
+                qCooldownTimer += Time.deltaTime;
+
             if (Input.GetKey(KeyCode.LeftShift))
             {
                 currentSpeed = 10.0f;
@@ -376,30 +373,20 @@ public class Movement : NetworkBehaviour
             }
         }
 
-
-        if (isQDelayActive)
+        if (Input.GetKeyUp(KeyCode.Q))
         {
-            qCooldownTimer += Time.deltaTime;
-
-            if (qCooldownTimer >= qCooldownDelay)
-            {
-                isQDelayActive = false;
-                Debug.Log("KÉSZ " + cooldownPercent);
-                isUsable = cooldownPercent > 1f; // csak akkor használható, ha van töltés is
-            }
+            animator.SetBool("IsRolling", false);
+            isQPressed = false;
         }
-        else
-        {
-            isUsable = cooldownPercent > 1f;
-            if (Input.GetKeyUp(KeyCode.Q) || !isUsable)
-            {
-                animator.SetBool("IsRolling", false);
-                currentSpeed = defaultSpeed;
-                playersInside.Clear();
+        QcooldownImage.fillAmount = qCooldownTimer / qCooldownDelay;
 
-                isQDelayActive = true;        // elindul a várakozás
-                qCooldownTimer = 0f;          // időzítő nullázása
-                isUsable = false;             // azonnal letiltjuk a képességet
+        if (!isQUsable)
+        {
+            qTimerAfterUse += Time.deltaTime;
+            if (qTimerAfterUse >= qDelayAfterUse)
+            {
+                isQUsable = true;
+                qTimerAfterUse = 0f;
             }
         }
 
@@ -444,7 +431,6 @@ public class Movement : NetworkBehaviour
     void FixedUpdate()
     {
         // Apply movement using Rigidbody
-        Debug.Log(currentSpeed);
         Vector3 targetPosition = rb.position + moveInput * currentSpeed * Time.fixedDeltaTime;
         rb.MovePosition(targetPosition);
     }
@@ -541,6 +527,15 @@ public class Movement : NetworkBehaviour
     public bool IsAnyPlayerInside()
     {
         return playersInside.Count > 0;
+    }
+    public bool isStunned = false;
+    private float stunEndTime = 0f;
+    public void Stun(float duration)
+    {
+        isStunned = true;
+        stunEndTime = Time.time + duration;
+        // Esetleg játssz le egy stun animációt is
+        Debug.Log($"{gameObject.name} le lett stunolva {duration} másodpercre.");
     }
 
     public void PlayAnimationOnEnemy(float amount, float knockbackForce, Vector3 attackerPosition)
