@@ -452,6 +452,8 @@ public class Movement : NetworkBehaviour
                 qAbilityTimer = 0f; // reset timer
             }
         }
+        Debug.Log("playerInside: " + playersInside.Count);
+        playersInside.Clear();
     }
 
     public void LayDamage()
@@ -465,6 +467,7 @@ public class Movement : NetworkBehaviour
                 //Debug.Log("TEST: " + enemy.transform.name);
             }
         }
+        playersInside.Clear();
     }
 
     public void PerformPunchHit(float punchRange)
@@ -525,7 +528,7 @@ public class Movement : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-
+        if (!IsOwner) return;
         Movement pcTemp = other.GetComponent<Movement>();
         if (pcTemp != null)
         {
@@ -535,6 +538,7 @@ public class Movement : NetworkBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (!IsOwner) return;
         Movement pcTemp = other.GetComponent<Movement>();
         if (pcTemp != null && playersInside.Contains(pcTemp))
         {
@@ -558,15 +562,8 @@ public class Movement : NetworkBehaviour
 
     public void PlayAnimationOnEnemy(float amount, float knockbackForce, Vector3 attackerPosition)
     {
-        ClientRpcParams rpcParams = new ClientRpcParams
-        {
-            Send = new ClientRpcSendParams
-            {
-                TargetClientIds = new ulong[] { OwnerClientId }
-            }
-        };
 
-        PlayGetHitAnimationClientRpc(rpcParams);
+        PlayGetHitAnimationServerRpc();
 
         Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
         pc.TakeDamage(amount, knockbackDirection * knockbackForce);
@@ -598,10 +595,16 @@ public class Movement : NetworkBehaviour
     }
     */
 
-    [ClientRpc]
-    void PlayGetHitAnimationClientRpc(ClientRpcParams rpcParams = default)
+
+    [ServerRpc(RequireOwnership = false)]
+    void PlayGetHitAnimationServerRpc()
     {
-        if (!IsOwner) return; // csak a célzott kliens játssza le
+        animator.SetTrigger("GetHit");
+        PlayGetHitClientRpc();
+    }
+    [ClientRpc]
+    private void PlayGetHitClientRpc()
+    {
         animator.SetTrigger("GetHit");
     }
 
