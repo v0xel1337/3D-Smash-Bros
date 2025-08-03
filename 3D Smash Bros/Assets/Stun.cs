@@ -60,8 +60,7 @@ public class Stun : NetworkBehaviour
             {
                 if (enemy != null)
                 {
-                    enemy.PlayAnimationOnEnemy(10, 12, transform.position);
-                    enemy.PlayGetHitAnimation();
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
                     enemy.Stun(5f);
                 }
             }

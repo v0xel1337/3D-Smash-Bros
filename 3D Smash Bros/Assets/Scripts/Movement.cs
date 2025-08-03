@@ -212,6 +212,11 @@ public class Movement : NetworkBehaviour
             return;
         }
 
+        if (!animator.GetBool("inSubStateMachine"))
+        {
+            playersInside.Clear();
+        }
+        
         if (isStunned)
         {
             if (Time.time >= stunEndTime)
@@ -440,20 +445,20 @@ public class Movement : NetworkBehaviour
         rb.MovePosition(targetPosition);
     }
 
+
+
     public void RollDamage()
     {
         foreach (Movement enemy in playersInside)
         {
             if (enemy != null)
             {
-                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
-                enemy.PlayGetHitAnimation();
+                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
                 //Debug.Log("TEST: " + enemy.transform.name);
                 qAbilityTimer = 0f; // reset timer
             }
         }
         Debug.Log("playerInside: " + playersInside.Count);
-        playersInside.Clear();
     }
 
     public void LayDamage()
@@ -462,12 +467,10 @@ public class Movement : NetworkBehaviour
         {
             if (enemy != null)
             {
-                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
-                enemy.PlayGetHitAnimation();
+                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
                 //Debug.Log("TEST: " + enemy.transform.name);
             }
         }
-        playersInside.Clear();
     }
 
     public void PerformPunchHit(float punchRange)
@@ -477,7 +480,7 @@ public class Movement : NetworkBehaviour
             var enemy = hit.collider.GetComponent<Movement>();
             if (enemy != null)
             {
-                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
+                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
             }
         }
     }
@@ -494,8 +497,6 @@ public class Movement : NetworkBehaviour
                 cooldownGreenImage.fillAmount = 1f;
             if (ui != null)
                 ui.UpdateCircles(noOfClicks);
-
-            playersInside.Clear();
             return;
         }
         
@@ -506,7 +507,7 @@ public class Movement : NetworkBehaviour
             noOfClicks++;
             foreach (Movement enemy in playersInside)
             {
-                enemy.PlayAnimationOnEnemy(10, 12, transform.position);
+                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
             }
 
         }
@@ -518,19 +519,17 @@ public class Movement : NetworkBehaviour
             cooldownGreenImage.fillAmount = 1f;
         }
 
-        playersInside.Clear();
-
         if (ui != null)
             ui.UpdateCircles(noOfClicks);
     }
 
     public List<Movement> playersInside = new List<Movement>();
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if (!IsOwner) return;
         Movement pcTemp = other.GetComponent<Movement>();
-        if (pcTemp != null)
+        if (pcTemp != null && !playersInside.Contains(pcTemp))
         {
             playersInside.Add(pcTemp);
         }
@@ -560,17 +559,6 @@ public class Movement : NetworkBehaviour
         Debug.Log($"{gameObject.name} le lett stunolva {duration} másodpercre.");
     }
 
-    public void PlayAnimationOnEnemy(float amount, float knockbackForce, Vector3 attackerPosition)
-    {
-
-        PlayGetHitAnimationServerRpc();
-
-        Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-        pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-        // Ha a szerver (host) futtatja ezt, de nem ő a target, akkor küldjön ClientRpc-t a kliensnek
-
-    }
-
     void FaceCameraDirection()
     {
         Vector3 cameraForward = cameraTransform.forward;
@@ -597,19 +585,26 @@ public class Movement : NetworkBehaviour
 
 
     [ServerRpc(RequireOwnership = false)]
-    void PlayGetHitAnimationServerRpc()
+    public void PlayGetHitAnimationServerRpc(float amount, float knockbackForce, Vector3 attackerPosition)
     {
-        animator.SetTrigger("GetHit");
-        PlayGetHitClientRpc();
+
+        if (IsServer)
+        {
+            PlayGetHitClientRpc(amount, knockbackForce, attackerPosition);
+        }
+        else
+        {
+            Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+            pc.TakeDamage(amount, knockbackDirection * knockbackForce);
+            animator.SetTrigger("GetHit");
+        }
+        
     }
     [ClientRpc]
-    private void PlayGetHitClientRpc()
+    private void PlayGetHitClientRpc(float amount, float knockbackForce, Vector3 attackerPosition)
     {
-        animator.SetTrigger("GetHit");
-    }
-
-    public void PlayGetHitAnimation()
-    {
+        Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+        pc.TakeDamage(amount, knockbackDirection * knockbackForce);
         animator.SetTrigger("GetHit");
     }
 }

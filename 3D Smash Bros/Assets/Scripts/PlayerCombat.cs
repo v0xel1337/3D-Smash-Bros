@@ -46,7 +46,7 @@ public class PlayerCombat : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        Debug.Log(percent.Value);
+        Debug.Log("dfgdfgdfgdfg");
         Debug.Log(amount);
         percent.Value += amount;
 
