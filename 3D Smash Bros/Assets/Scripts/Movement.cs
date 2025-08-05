@@ -52,6 +52,8 @@ public class Movement : NetworkBehaviour
     private float eCooldownTimer = 0f;
     private bool isEUsable = true;
 
+    public bool rIsEnabled = false;
+
     // NetworkVariable szinkronizálja a hálózaton a health értékét
     public NetworkVariable<float> HEALTH = new NetworkVariable<float>(
         100f,
@@ -329,6 +331,7 @@ public class Movement : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.R) && !animator.GetBool("inSubStateMachine"))
         {
+            rIsEnabled = true;
             animator.SetTrigger("Lay");
         }
 
@@ -473,6 +476,11 @@ public class Movement : NetworkBehaviour
         }
     }
 
+    public void LayExit()
+    {
+        rIsEnabled = false;
+    }
+
     public void PerformPunchHit(float punchRange)
     {
         if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, punchRange))
@@ -594,17 +602,36 @@ public class Movement : NetworkBehaviour
         }
         else
         {
-            Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-            pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-            animator.SetTrigger("GetHit");
+            if (!rIsEnabled)
+            {
+                Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+                pc.TakeDamage(amount, knockbackDirection * knockbackForce);
+                animator.SetTrigger("GetHit");
+                Debug.Log("playerInside: " + playersInside.Count);
+            }
+            else
+            { 
+            
+            }
+
         }
         
     }
     [ClientRpc]
     private void PlayGetHitClientRpc(float amount, float knockbackForce, Vector3 attackerPosition)
     {
-        Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-        pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-        animator.SetTrigger("GetHit");
+        if (!rIsEnabled)
+        {
+            Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+            pc.TakeDamage(amount, knockbackDirection * knockbackForce);
+            animator.SetTrigger("GetHit");
+            Debug.Log("playerInside: " + playersInside.Count);
+        }
+        else 
+        { 
+        
+        }
+        
+        
     }
 }
