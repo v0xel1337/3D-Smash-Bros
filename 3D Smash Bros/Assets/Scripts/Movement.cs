@@ -331,7 +331,6 @@ public class Movement : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.R) && !animator.GetBool("inSubStateMachine"))
         {
-            rIsEnabled = true;
             animator.SetTrigger("Lay");
         }
 
@@ -456,7 +455,15 @@ public class Movement : NetworkBehaviour
         {
             if (enemy != null)
             {
-                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
+                if (enemy.rIsEnabled)
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+
+                }
+                else {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                }
+                
                 //Debug.Log("TEST: " + enemy.transform.name);
                 qAbilityTimer = 0f; // reset timer
             }
@@ -466,11 +473,20 @@ public class Movement : NetworkBehaviour
 
     public void LayDamage()
     {
+        rIsEnabled = true;
         foreach (Movement enemy in playersInside)
         {
             if (enemy != null)
             {
-                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
+                if (enemy.rIsEnabled)
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+
+                }
+                else
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                }
                 //Debug.Log("TEST: " + enemy.transform.name);
             }
         }
@@ -488,7 +504,15 @@ public class Movement : NetworkBehaviour
             var enemy = hit.collider.GetComponent<Movement>();
             if (enemy != null)
             {
-                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
+                if (enemy.rIsEnabled)
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+
+                }
+                else
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                }
             }
         }
     }
@@ -515,7 +539,15 @@ public class Movement : NetworkBehaviour
             noOfClicks++;
             foreach (Movement enemy in playersInside)
             {
-                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
+                if (enemy.rIsEnabled)
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+
+                }
+                else
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                }
             }
 
         }
@@ -593,15 +625,15 @@ public class Movement : NetworkBehaviour
 
 
     [ServerRpc(RequireOwnership = false)]
-    public void PlayGetHitAnimationServerRpc(float amount, float knockbackForce, Vector3 attackerPosition)
+    public void PlayGetHitAnimationServerRpc(float amount, float knockbackForce, Vector3 attackerPosition, bool isInTrigger)
     {
-
         if (IsServer)
         {
-            PlayGetHitClientRpc(amount, knockbackForce, attackerPosition);
+            PlayGetHitClientRpc(amount, knockbackForce, attackerPosition, isInTrigger);
         }
         else
         {
+            Debug.LogWarning("Trigger: " + isInTrigger);
             if (!rIsEnabled)
             {
                 Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
@@ -610,16 +642,23 @@ public class Movement : NetworkBehaviour
                 Debug.Log("playerInside: " + playersInside.Count);
             }
             else
-            { 
-            
+            {
+                if (isInTrigger)
+                {
+                    Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+                    pc.TakeDamage(amount, knockbackDirection * knockbackForce);
+                    animator.SetTrigger("GetHit");
+                    Debug.Log("playerInside: " + playersInside.Count);
+                }
             }
 
         }
         
     }
     [ClientRpc]
-    private void PlayGetHitClientRpc(float amount, float knockbackForce, Vector3 attackerPosition)
+    private void PlayGetHitClientRpc(float amount, float knockbackForce, Vector3 attackerPosition, bool isInTrigger)
     {
+        Debug.LogWarning("Trigger: " + isInTrigger);
         if (!rIsEnabled)
         {
             Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
@@ -628,8 +667,14 @@ public class Movement : NetworkBehaviour
             Debug.Log("playerInside: " + playersInside.Count);
         }
         else 
-        { 
-        
+        {
+            if (isInTrigger)
+            {
+                Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
+                pc.TakeDamage(amount, knockbackDirection * knockbackForce);
+                animator.SetTrigger("GetHit");
+                Debug.Log("playerInside: " + playersInside.Count);
+            }
         }
         
         

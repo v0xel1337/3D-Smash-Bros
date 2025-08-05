@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -60,8 +61,12 @@ public class Stun : NetworkBehaviour
             {
                 if (enemy != null)
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position);
-                    enemy.Stun(5f);
+                    if (enemy.rIsEnabled == false)
+                    {
+                        enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, !enemy.rIsEnabled);
+                        enemy.Stun(5f);
+                    }
+                    
                 }
             }
         }
