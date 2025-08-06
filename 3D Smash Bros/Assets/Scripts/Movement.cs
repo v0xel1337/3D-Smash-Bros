@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -457,11 +458,11 @@ public class Movement : NetworkBehaviour
             {
                 if (enemy.rIsEnabled)
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
 
                 }
                 else {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
                 }
                 
                 //Debug.Log("TEST: " + enemy.transform.name);
@@ -471,21 +472,33 @@ public class Movement : NetworkBehaviour
         Debug.Log("playerInside: " + playersInside.Count);
     }
 
+    [ServerRpc]
+    public void SetREnabledServerRpc(bool value)
+    {
+        SetREnabledClientRpc(value);
+    }
+
+    [ClientRpc]
+    void SetREnabledClientRpc(bool value)
+    {
+        rIsEnabled = value;
+    }
+
     public void LayDamage()
     {
-        rIsEnabled = true;
+        SetREnabledServerRpc(true);
         foreach (Movement enemy in playersInside)
         {
             if (enemy != null)
             {
                 if (enemy.rIsEnabled)
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
 
                 }
                 else
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
                 }
                 //Debug.Log("TEST: " + enemy.transform.name);
             }
@@ -506,12 +519,12 @@ public class Movement : NetworkBehaviour
             {
                 if (enemy.rIsEnabled)
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
 
                 }
                 else
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
                 }
             }
         }
@@ -532,7 +545,7 @@ public class Movement : NetworkBehaviour
             return;
         }
         
-        if (noOfClicks < 2)
+        if (noOfClicks <= 2)
         {
             isGreenOnCooldown = true;
             greenCooldownTimer = 0f;
@@ -541,22 +554,22 @@ public class Movement : NetworkBehaviour
             {
                 if (enemy.rIsEnabled)
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, enemy.playersInside.Contains(this));
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
 
                 }
                 else
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, true);
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
                 }
             }
+            if (noOfClicks > 2)
+            {
+                isGreenOnCooldown = false;
+                greenCooldownTimer = 1f;
+                noOfClicks = 0;
+                cooldownGreenImage.fillAmount = 1f;
+            }
 
-        }
-        else
-        {
-            isGreenOnCooldown = false;
-            greenCooldownTimer = 1f;
-            noOfClicks = 0;
-            cooldownGreenImage.fillAmount = 1f;
         }
 
         if (ui != null)
@@ -625,15 +638,17 @@ public class Movement : NetworkBehaviour
 
 
     [ServerRpc(RequireOwnership = false)]
-    public void PlayGetHitAnimationServerRpc(float amount, float knockbackForce, Vector3 attackerPosition, bool isInTrigger)
+    public void PlayGetHitAnimationServerRpc(float amount, float knockbackForce, Vector3 attackerPosition, ulong attackerClientId)
     {
+        bool attackerIsInside = playersInside.Any(p => p.OwnerClientId == attackerClientId);
+
         if (IsServer)
         {
-            PlayGetHitClientRpc(amount, knockbackForce, attackerPosition, isInTrigger);
+            PlayGetHitClientRpc(amount, knockbackForce, attackerPosition, attackerClientId);
         }
         else
         {
-            Debug.LogWarning("Trigger: " + isInTrigger);
+            Debug.LogWarning("Trigger: " + attackerIsInside);
             if (!rIsEnabled)
             {
                 Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
@@ -643,8 +658,9 @@ public class Movement : NetworkBehaviour
             }
             else
             {
-                if (isInTrigger)
+                if (attackerIsInside)
                 {
+                    SetREnabledServerRpc(false);
                     Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
                     pc.TakeDamage(amount, knockbackDirection * knockbackForce);
                     animator.SetTrigger("GetHit");
@@ -656,9 +672,10 @@ public class Movement : NetworkBehaviour
         
     }
     [ClientRpc]
-    private void PlayGetHitClientRpc(float amount, float knockbackForce, Vector3 attackerPosition, bool isInTrigger)
+    private void PlayGetHitClientRpc(float amount, float knockbackForce, Vector3 attackerPosition, ulong attackerClientId)
     {
-        Debug.LogWarning("Trigger: " + isInTrigger);
+        bool attackerIsInside = playersInside.Any(p => p.OwnerClientId == attackerClientId);
+        Debug.LogWarning("Trigger: " + attackerIsInside);
         if (!rIsEnabled)
         {
             Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
@@ -668,8 +685,9 @@ public class Movement : NetworkBehaviour
         }
         else 
         {
-            if (isInTrigger)
+            if (attackerIsInside)
             {
+                SetREnabledServerRpc(false);
                 Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
                 pc.TakeDamage(amount, knockbackDirection * knockbackForce);
                 animator.SetTrigger("GetHit");

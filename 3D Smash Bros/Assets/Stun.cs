@@ -63,7 +63,7 @@ public class Stun : NetworkBehaviour
                 {
                     if (enemy.rIsEnabled == false)
                     {
-                        enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, !enemy.rIsEnabled);
+                        enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
                         enemy.Stun(5f);
                     }
                     
