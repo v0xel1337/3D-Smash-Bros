@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GameStarter : NetworkBehaviour
 {
-    [SerializeField] private GameObject playerPrefab;
+    [SerializeField] private GameObject[] characterPrefabs; // 0 = Character1, 1 = Character2
 
     public override void OnNetworkSpawn()
     {
@@ -14,16 +14,21 @@ public class GameStarter : NetworkBehaviour
             var client = NetworkManager.Singleton.ConnectedClients[clientId];
             var existingPlayer = client.PlayerObject;
 
-            // Ha van már PlayerObject, despawnoljuk és töröljük
+            int charIndex = 0;
+
+            if (existingPlayer != null && existingPlayer.TryGetComponent(out PlayerData playerData))
+            {
+                charIndex = playerData.CharacterIndex.Value; // minden játékos sajátját használja
+            }
+
             if (existingPlayer != null)
             {
                 existingPlayer.Despawn();
                 Destroy(existingPlayer.gameObject);
             }
 
-            // Új játékos objektum példányosítása és spawnolása
             Vector3 spawnPos = GetSpawnPosition(clientId);
-            GameObject player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
+            GameObject player = Instantiate(characterPrefabs[charIndex], spawnPos, Quaternion.identity);
             player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
         }
     }
