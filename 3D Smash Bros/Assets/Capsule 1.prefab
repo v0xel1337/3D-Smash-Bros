@@ -619,12 +619,12 @@ GameObject:
   - component: {fileID: 695746223619176670}
   - component: {fileID: 276941970008173384}
   - component: {fileID: 6513558348379632653}
-  - component: {fileID: 1650504665404389941}
+  - component: {fileID: 2513165428319524248}
   - component: {fileID: 8337604964979138523}
   - component: {fileID: 304446975631463527}
   - component: {fileID: 538265417478302978}
   - component: {fileID: 4176527076213082310}
-  - component: {fileID: 7504153384107475830}
+  - component: {fileID: 516182561486366498}
   m_Layer: 0
   m_Name: Capsule 1
   m_TagString: Player
@@ -739,7 +739,7 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &1650504665404389941
+--- !u!114 &2513165428319524248
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -748,7 +748,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3738092772479428405}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 121b57277ef710f4099fc99a875a733e, type: 3}
+  m_Script: {fileID: 11500000, guid: c3dd42fd7dd06a44da5b0aa73e9560e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
@@ -760,7 +760,6 @@ MonoBehaviour:
   groundCheckDistance: 1.1
   cameraTransform: {fileID: 6406004041400770044}
   animator: {fileID: 538265417478302978}
-  maxHealth: 100
   cooldownImage: {fileID: 0}
   QcooldownImage: {fileID: 0}
   EcooldownImage: {fileID: 0}
@@ -770,9 +769,6 @@ MonoBehaviour:
   qCooldownDelay: 10
   eCooldownDelay: 4
   rIsEnabled: 0
-  HEALTH:
-    m_InternalValue: 100
-  isDead: 0
   pc: {fileID: 8337604964979138523}
   playersInside: []
   isStunned: 0
@@ -791,6 +787,11 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   percent:
     m_InternalValue: 0
+  HEALTH:
+    m_InternalValue: 100
+  ui: {fileID: 0}
+  maxHealth: 100
+  isDead: 0
 --- !u!114 &304446975631463527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -874,7 +875,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   TransitionStateInfoList: []
   m_Animator: {fileID: 538265417478302978}
---- !u!114 &7504153384107475830
+--- !u!114 &516182561486366498
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -883,10 +884,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3738092772479428405}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 781aea25f52478643b25b43734ec2a26, type: 3}
+  m_Script: {fileID: 11500000, guid: 772c1f68e1fb59144b10d5c3185b1439, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementScript: {fileID: 1650504665404389941}
+  movementScript: {fileID: 2513165428319524248}
   pc: {fileID: 8337604964979138523}
 --- !u!1 &4073887878915840371
 GameObject:

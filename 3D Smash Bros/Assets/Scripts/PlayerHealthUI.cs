@@ -7,9 +7,9 @@ using Unity.Multiplayer.Playmode;
 
 public class PlayerHealthUI : MonoBehaviour
 {
-    private Movement playerHealth;
+    private PlayerCombat playerHealth;
 
-    public void SetPlayerHealth(Movement health)
+    public void SetPlayerHealth(PlayerCombat health)
     {
         playerHealth = health;
     }
