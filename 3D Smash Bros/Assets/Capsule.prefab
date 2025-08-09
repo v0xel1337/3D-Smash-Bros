@@ -769,6 +769,7 @@ MonoBehaviour:
   qDelayAfterUse: 1
   qCooldownDelay: 10
   eCooldownDelay: 4
+  rIsEnabled: 0
   HEALTH:
     m_InternalValue: 100
   isDead: 0

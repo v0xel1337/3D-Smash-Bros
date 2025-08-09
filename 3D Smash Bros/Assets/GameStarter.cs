@@ -28,8 +28,8 @@ public class GameStarter : NetworkBehaviour
             }
 
             Vector3 spawnPos = GetSpawnPosition(clientId);
-            GameObject player = Instantiate(characterPrefabs[charIndex], spawnPos, Quaternion.identity);
-            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+            GameObject player = Instantiate(characterPrefabs[charIndex], spawnPos, Quaternion.identity); // HIBA
+            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId); 
         }
     }
 

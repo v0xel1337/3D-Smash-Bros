@@ -10,6 +10,7 @@ using Unity.Services.Relay.Models;
 using Unity.Services.Relay;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEditor.PackageManager;
 
 public class RelayManager : MonoBehaviour
 {
@@ -26,6 +27,9 @@ public class RelayManager : MonoBehaviour
     [SerializeField] GameObject waitingLobbyPanel;
     [SerializeField] Transform playerListContainer;
     [SerializeField] TextMeshProUGUI playerNamePrefab;
+
+    [SerializeField] private GameObject characterSelection; // 0 = Character1, 1 = Character2
+
 
     void Awake() => Instance = this;
 
@@ -44,6 +48,23 @@ public class RelayManager : MonoBehaviour
 
         hostButton.onClick.AddListener(CreateRelay);
         joinButton.onClick.AddListener(() => JoinRelay(joinInput.text));
+
+        if (!NetworkManager.Singleton.IsServer)
+            return;
+        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        {
+            var client = NetworkManager.Singleton.ConnectedClients[clientId];
+            var existingPlayer = client.PlayerObject;
+
+            if (existingPlayer != null)
+            {
+                existingPlayer.Despawn();
+                Destroy(existingPlayer.gameObject);
+            }
+
+            GameObject player = Instantiate(characterSelection, transform.position, Quaternion.identity); // HIBA
+            player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+        }
     }
 
     async void CreateRelay()

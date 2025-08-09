@@ -726,7 +726,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1228321952
+  GlobalObjectIdHash: 1218138983
   InScenePlacedSourceGlobalObjectIdHash: 1228321952
   DeferredDespawnTick: 0
   Ownership: 1
@@ -769,6 +769,7 @@ MonoBehaviour:
   qDelayAfterUse: 1
   qCooldownDelay: 10
   eCooldownDelay: 4
+  rIsEnabled: 0
   HEALTH:
     m_InternalValue: 100
   isDead: 0
@@ -1889,7 +1890,7 @@ SkinnedMeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: -6629797300637803691, guid: dff69ec10bcff674e8ef7ef24ea59393, type: 3}
-  - {fileID: 4874126678125670354, guid: dff69ec10bcff674e8ef7ef24ea59393, type: 3}
+  - {fileID: 2100000, guid: 84726410398291343a62b4429b13900c, type: 2}
   - {fileID: -6922793697723135513, guid: dff69ec10bcff674e8ef7ef24ea59393, type: 3}
   - {fileID: -6629797300637803691, guid: dff69ec10bcff674e8ef7ef24ea59393, type: 3}
   m_StaticBatchInfo:
