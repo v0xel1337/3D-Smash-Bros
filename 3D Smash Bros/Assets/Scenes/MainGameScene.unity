@@ -3827,7 +3827,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   characterPrefabs:
   - {fileID: 3738092772479428405, guid: d6581158e9756294388ec8d50f7ffad5, type: 3}
-  - {fileID: 3738092772479428405, guid: 648ecd99a6f49fd439640d5916445688, type: 3}
+  - {fileID: 3738092772479428405, guid: b445f9811c6f2464e87f828989882d58, type: 3}
 --- !u!4 &544780323
 Transform:
   m_ObjectHideFlags: 0

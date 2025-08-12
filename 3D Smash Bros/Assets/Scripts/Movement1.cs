@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Movement : NetworkBehaviour
+public class Movement1 : NetworkBehaviour
 {
     [SerializeField]
     private float defaultSpeed = 5.0f;
