@@ -5,12 +5,12 @@ using UnityEngine;
 
 public class Stun : NetworkBehaviour
 {
-    public List<Movement> playersInside = new List<Movement>();
+    public List<PlayerCombat> playersInside = new List<PlayerCombat>();
     public Animator animator;
 
     void OnTriggerEnter(Collider other)
     {
-        Movement pcTemp = other.GetComponent<Movement>();
+        PlayerCombat pcTemp = other.GetComponent<PlayerCombat>();
         if (pcTemp != null)
         {
             playersInside.Add(pcTemp);
@@ -19,7 +19,7 @@ public class Stun : NetworkBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        Movement pcTemp = other.GetComponent<Movement>();
+        PlayerCombat pcTemp = other.GetComponent<PlayerCombat>();
         if (pcTemp != null && playersInside.Contains(pcTemp))
         {
             playersInside.Remove(pcTemp);
@@ -57,16 +57,12 @@ public class Stun : NetworkBehaviour
         {
             Debug.Log($"Játékosok a triggerben ({playersInside.Count} db):");
 
-            foreach (Movement enemy in playersInside)
+            foreach (PlayerCombat enemy in playersInside)
             {
                 if (enemy != null)
                 {
-                    if (enemy.rIsEnabled == false)
-                    {
-                        enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
-                        enemy.Stun(5f);
-                    }
-                    
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
+                    enemy.Stun(5f);
                 }
             }
         }

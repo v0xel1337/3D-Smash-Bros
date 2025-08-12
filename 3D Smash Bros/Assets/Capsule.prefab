@@ -759,8 +759,6 @@ MonoBehaviour:
     m_Bits: 311
   groundCheckDistance: 1.1
   cameraTransform: {fileID: 6406004041400770044}
-  animator: {fileID: 538265417478302978}
-  maxHealth: 100
   cooldownImage: {fileID: 0}
   QcooldownImage: {fileID: 0}
   EcooldownImage: {fileID: 0}
@@ -770,12 +768,7 @@ MonoBehaviour:
   qCooldownDelay: 10
   eCooldownDelay: 4
   rIsEnabled: 0
-  HEALTH:
-    m_InternalValue: 100
-  isDead: 0
   pc: {fileID: 8337604964979138523}
-  playersInside: []
-  isStunned: 0
 --- !u!114 &8337604964979138523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -789,8 +782,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  animator: {fileID: 538265417478302978}
   percent:
     m_InternalValue: 0
+  HEALTH:
+    m_InternalValue: 100
+  ui: {fileID: 0}
+  maxHealth: 100
+  playersInside: []
+  isDead: 0
+  isStunned: 0
+  stunEndTime: 0
 --- !u!114 &304446975631463527
 MonoBehaviour:
   m_ObjectHideFlags: 0

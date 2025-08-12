@@ -22,7 +22,7 @@ public class Movement : NetworkBehaviour
     Camera _camera;
     [SerializeField] private Transform cameraTransform; // A főkamera Transformja
 
-    public Animator animator;
+    
 
     public static int noOfClicks = 0;
 
@@ -85,8 +85,8 @@ public class Movement : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         rb = GetComponent<Rigidbody>();
-        animator = GetComponent<Animator>();
         pc = GetComponent<PlayerCombat>();
+
         _camera = GetComponentInChildren<Camera>();
         cameraTransform = _camera.transform;
 
@@ -121,7 +121,7 @@ public class Movement : NetworkBehaviour
 
     void OnClick()
     {
-        if (animator.GetBool("inSubStateMachine"))
+        if (pc.animator.GetBool("inSubStateMachine"))
             return;
         string nextAnimation = "";
         if (!isAbilityOnCooldown && !isGreenOnCooldown)
@@ -146,7 +146,7 @@ public class Movement : NetworkBehaviour
         // Avoid replaying the same animation
         if (nextAnimation != "" && lastPlayedAnimation != nextAnimation)
         {
-            animator.CrossFade(nextAnimation, 0.15f);
+            pc.animator.CrossFade(nextAnimation, 0.15f);
             lastPlayedAnimation = nextAnimation;
         }
     }
@@ -157,16 +157,16 @@ public class Movement : NetworkBehaviour
             return;
         }
 
-        if (!animator.GetBool("inSubStateMachine"))
+        if (!pc.animator.GetBool("inSubStateMachine"))
         {
-            playersInside.Clear();
+            pc.playersInside.Clear();
         }
         
-        if (isStunned)
+        if (pc.isStunned)
         {
-            if (Time.time >= stunEndTime)
+            if (Time.time >= pc.stunEndTime)
             {
-                isStunned = false;
+                pc.isStunned = false;
                 // Esetleg animáció visszaállítása itt
             }
             else
@@ -175,7 +175,7 @@ public class Movement : NetworkBehaviour
             }
         }
 
-        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0); // 0 = base layer
+        AnimatorStateInfo stateInfo = pc.animator.GetCurrentAnimatorStateInfo(0); // 0 = base layer
 
         if (isAbilityOnCooldown)
         {
@@ -225,7 +225,7 @@ public class Movement : NetworkBehaviour
 
 
 
-        if (animator.GetBool("inSubStateMachine") && !stateInfo.IsName("Roll"))
+        if (pc.animator.GetBool("inSubStateMachine") && !stateInfo.IsName("Roll"))
         {
             moveInput = Vector3.zero;
         }
@@ -250,7 +250,7 @@ public class Movement : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.V))
         {
-            animator.SetTrigger("Punch");
+            pc.animator.SetTrigger("Punch");
         }
 
         if (Input.GetKeyDown(KeyCode.E) && isEUsable)
@@ -272,9 +272,9 @@ public class Movement : NetworkBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && !animator.GetBool("inSubStateMachine"))
+        if (Input.GetKeyDown(KeyCode.R) && !pc.animator.GetBool("inSubStateMachine"))
         {
-            animator.SetTrigger("Lay");
+            pc.animator.SetTrigger("Lay");
         }
 
         // E cooldown logika
@@ -291,9 +291,9 @@ public class Movement : NetworkBehaviour
         }
 
         // Ne engedje újraindítani a gurulást, ha még tart
-        if (Input.GetKeyDown(KeyCode.Q) && isQUsable && !animator.GetBool("inSubStateMachine"))
+        if (Input.GetKeyDown(KeyCode.Q) && isQUsable && !pc.animator.GetBool("inSubStateMachine"))
         {
-            animator.SetTrigger("Roll");
+            pc.animator.SetTrigger("Roll");
             currentSpeed = defaultSpeed * 4;
             isQPressed = true;
         }
@@ -303,14 +303,14 @@ public class Movement : NetworkBehaviour
             if (qCooldownTimer > 0)
             {
                 qCooldownTimer -= Time.deltaTime;
-                animator.SetBool("IsRolling", true);
+                pc.animator.SetBool("IsRolling", true);
             }
             else
             {
                 qTimerAfterUse = 0;
                 isQUsable = false;
                 isQPressed = false;
-                animator.SetBool("IsRolling", false);
+                pc.animator.SetBool("IsRolling", false);
             }
         }
         else
@@ -330,7 +330,7 @@ public class Movement : NetworkBehaviour
 
         if (Input.GetKeyUp(KeyCode.Q))
         {
-            animator.SetBool("IsRolling", false);
+            pc.animator.SetBool("IsRolling", false);
             isQPressed = false;
         }
         QcooldownImage.fillAmount = qCooldownTimer / qCooldownDelay;
@@ -360,8 +360,8 @@ public class Movement : NetworkBehaviour
         bool isWalking = moveInput.magnitude > 0.1f;
         bool isRunning = isWalking && Input.GetKey(KeyCode.LeftShift);
 
-        animator.SetBool("IsWalking", isWalking);
-        animator.SetBool("IsRunning", isRunning);
+        pc.animator.SetBool("IsWalking", isWalking);
+        pc.animator.SetBool("IsRunning", isRunning);
 
         // Grounded check
         isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundMask);
@@ -394,22 +394,14 @@ public class Movement : NetworkBehaviour
 
     public void RollDamage()
     {
-        foreach (Movement enemy in playersInside)
+        foreach (PlayerCombat enemy in pc.playersInside)
         {
             if (enemy != null)
             {
-                if (enemy.rIsEnabled)
-                {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
+                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
 
-                }
-                else {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
-                }
-               
             }
         }
-        Debug.Log("playerInside: " + playersInside.Count);
     }
 
     [ServerRpc]
@@ -427,20 +419,11 @@ public class Movement : NetworkBehaviour
     public void LayDamage()
     {
         SetREnabledServerRpc(true);
-        foreach (Movement enemy in playersInside)
+        foreach (PlayerCombat enemy in pc.playersInside)
         {
             if (enemy != null)
             {
-                if (enemy.rIsEnabled)
-                {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
-
-                }
-                else
-                {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
-                }
-                //Debug.Log("TEST: " + enemy.transform.name);
+                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
             }
         }
     }
@@ -459,12 +442,12 @@ public class Movement : NetworkBehaviour
             {
                 if (enemy.rIsEnabled)
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
+                    enemy.pc.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
 
                 }
                 else
                 {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
+                    enemy.pc.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
                 }
             }
         }
@@ -472,7 +455,7 @@ public class Movement : NetworkBehaviour
     public PlayerCombat pc;
     public void DamageZoneAreaCheck(string actionID)
     {
-        if (playersInside.Count == 0)
+        if (pc.playersInside.Count == 0)
         {
             noOfClicks = 0;
             isGreenOnCooldown = false;
@@ -490,17 +473,9 @@ public class Movement : NetworkBehaviour
             isGreenOnCooldown = true;
             greenCooldownTimer = 0f;
             noOfClicks++;
-            foreach (Movement enemy in playersInside)
+            foreach (PlayerCombat enemy in pc.playersInside)
             {
-                if (enemy.rIsEnabled)
-                {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
-
-                }
-                else
-                {
-                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
-                }
+                enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
             }
             if (noOfClicks > 2)
             {
@@ -516,41 +491,7 @@ public class Movement : NetworkBehaviour
             pc.ui.UpdateCircles(noOfClicks);
     }
 
-    public List<Movement> playersInside = new List<Movement>();
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (!IsOwner) return;
-        Movement pcTemp = other.GetComponent<Movement>();
-        if (pcTemp != null && !playersInside.Contains(pcTemp))
-        {
-            playersInside.Add(pcTemp);
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (!IsOwner) return;
-        Movement pcTemp = other.GetComponent<Movement>();
-        if (pcTemp != null && playersInside.Contains(pcTemp))
-        {
-            playersInside.Remove(pcTemp);
-        }
-    }
-
-    public bool IsAnyPlayerInside()
-    {
-        return playersInside.Count > 0;
-    }
-    public bool isStunned = false;
-    private float stunEndTime = 0f;
-    public void Stun(float duration)
-    {
-        isStunned = true;
-        stunEndTime = Time.time + duration;
-        // Esetleg játssz le egy stun animációt is
-        Debug.Log($"{gameObject.name} le lett stunolva {duration} másodpercre.");
-    }
+   
 
     void FaceCameraDirection()
     {
@@ -577,64 +518,5 @@ public class Movement : NetworkBehaviour
     */
 
 
-    [ServerRpc(RequireOwnership = false)]
-    public void PlayGetHitAnimationServerRpc(float amount, float knockbackForce, Vector3 attackerPosition, ulong attackerClientId)
-    {
-        bool attackerIsInside = playersInside.Any(p => p.OwnerClientId == attackerClientId);
 
-        if (IsServer)
-        {
-            PlayGetHitClientRpc(amount, knockbackForce, attackerPosition, attackerClientId);
-        }
-        else
-        {
-            Debug.LogWarning("Trigger: " + attackerIsInside);
-            if (!rIsEnabled)
-            {
-                Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-                pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-                animator.SetTrigger("GetHit");
-                Debug.Log("playerInside: " + playersInside.Count);
-            }
-            else
-            {
-                if (attackerIsInside)
-                {
-                    SetREnabledServerRpc(false);
-                    Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-                    pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-                    animator.SetTrigger("GetHit");
-                    Debug.Log("playerInside: " + playersInside.Count);
-                }
-            }
-
-        }
-        
-    }
-    [ClientRpc]
-    private void PlayGetHitClientRpc(float amount, float knockbackForce, Vector3 attackerPosition, ulong attackerClientId)
-    {
-        bool attackerIsInside = playersInside.Any(p => p.OwnerClientId == attackerClientId);
-        Debug.LogWarning("Trigger: " + attackerIsInside);
-        if (!rIsEnabled)
-        {
-            Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-            pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-            animator.SetTrigger("GetHit");
-            Debug.Log("playerInside: " + playersInside.Count);
-        }
-        else 
-        {
-            if (attackerIsInside)
-            {
-                SetREnabledServerRpc(false);
-                Vector3 knockbackDirection = (transform.position - attackerPosition).normalized;
-                pc.TakeDamage(amount, knockbackDirection * knockbackForce);
-                animator.SetTrigger("GetHit");
-                Debug.Log("playerInside: " + playersInside.Count);
-            }
-        }
-        
-        
-    }
 }
