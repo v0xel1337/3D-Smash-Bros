@@ -624,7 +624,7 @@ GameObject:
   - component: {fileID: 304446975631463527}
   - component: {fileID: 538265417478302978}
   - component: {fileID: 4176527076213082310}
-  - component: {fileID: 7504153384107475830}
+  - component: {fileID: 6696125272554693614}
   m_Layer: 0
   m_Name: Capsule 1
   m_TagString: Player
@@ -763,11 +763,6 @@ MonoBehaviour:
   QcooldownImage: {fileID: 0}
   EcooldownImage: {fileID: 0}
   cooldownGreenImage: {fileID: 0}
-  abilityCooldownTime: 1
-  qDelayAfterUse: 1
-  qCooldownDelay: 10
-  eCooldownDelay: 4
-  rIsEnabled: 0
   pc: {fileID: 8337604964979138523}
 --- !u!114 &8337604964979138523
 MonoBehaviour:
@@ -849,7 +844,7 @@ Animator:
   m_GameObject: {fileID: 3738092772479428405}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: dff69ec10bcff674e8ef7ef24ea59393, type: 3}
-  m_Controller: {fileID: 9100000, guid: dfbd3f72b9bc2ef468b2146a35f96a27, type: 2}
+  m_Controller: {fileID: 9100000, guid: ac905a90c954bfd4eaa894bd26483f85, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -876,7 +871,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   TransitionStateInfoList: []
   m_Animator: {fileID: 538265417478302978}
---- !u!114 &7504153384107475830
+--- !u!114 &6696125272554693614
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -885,10 +880,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3738092772479428405}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 781aea25f52478643b25b43734ec2a26, type: 3}
+  m_Script: {fileID: 11500000, guid: a5a837d92c43ebe4f858c30c55adde58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementScript: {fileID: 0}
+  movementScript: {fileID: 7242727440220865207}
   pc: {fileID: 8337604964979138523}
 --- !u!1 &4073887878915840371
 GameObject:
