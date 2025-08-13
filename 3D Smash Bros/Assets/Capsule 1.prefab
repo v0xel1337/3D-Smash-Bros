@@ -756,13 +756,18 @@ MonoBehaviour:
   jumpForce: 7
   groundMask:
     serializedVersion: 2
-    m_Bits: 311
+    m_Bits: 4294967295
   groundCheckDistance: 1.1
   cameraTransform: {fileID: 6406004041400770044}
   cooldownImage: {fileID: 0}
   QcooldownImage: {fileID: 0}
   EcooldownImage: {fileID: 0}
   cooldownGreenImage: {fileID: 0}
+  CylinderObject: {fileID: 5766670570156889573, guid: a963bd661816f8a4b8845f8323ed58a3,
+    type: 3}
+  terrainLayer:
+    serializedVersion: 2
+    m_Bits: 512
   pc: {fileID: 8337604964979138523}
 --- !u!114 &8337604964979138523
 MonoBehaviour:

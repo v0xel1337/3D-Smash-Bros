@@ -756,7 +756,7 @@ MonoBehaviour:
   jumpForce: 7
   groundMask:
     serializedVersion: 2
-    m_Bits: 311
+    m_Bits: 4294967295
   groundCheckDistance: 1.1
   cameraTransform: {fileID: 6406004041400770044}
   cooldownImage: {fileID: 0}

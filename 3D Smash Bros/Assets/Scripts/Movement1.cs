@@ -26,8 +26,12 @@ public class Movement1 : NetworkBehaviour
     public Image QcooldownImage;
     public Image EcooldownImage;
     public Image cooldownGreenImage;
+    public GameObject CylinderObject;
+    public LayerMask terrainLayer; // Csak Terrain-hez
 
-   
+    private Queue<GameObject> spawnedObjects = new Queue<GameObject>();
+
+
     private IEnumerator WaitForGameUI()
     {
         // Várd meg, amíg a GameUI.Instance nem null
@@ -175,7 +179,7 @@ public class Movement1 : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.V))
         {
-            pc.animator.SetTrigger("Punch");
+            pc.animator.SetTrigger("CylinderLodged");
         }
 
 
@@ -202,8 +206,41 @@ public class Movement1 : NetworkBehaviour
     }
 
     public void CylinderLodged()
-    { 
-    
+    {
+        if (!IsOwner)
+            return;
+
+        Ray ray = new Ray(_camera.transform.position, _camera.transform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, terrainLayer))
+        {
+            // Csak a szervert kérjük meg a spawnra
+            SpawnCylinderServerRpc(hit.point, hit.normal);
+        }
+    }
+
+    [ServerRpc]
+    private void SpawnCylinderServerRpc(Vector3 position, Vector3 normal)
+    {
+        Quaternion rotation = Quaternion.FromToRotation(Vector3.up, normal);
+        GameObject newObj = Instantiate(CylinderObject, position, rotation);
+
+        // Fontos: NetworkObject.Spawn()
+        newObj.GetComponent<NetworkObject>().Spawn();
+
+        spawnedObjects.Enqueue(newObj);
+
+        if (spawnedObjects.Count > 3)
+        {
+            GameObject oldest = spawnedObjects.Dequeue();
+            if (oldest != null && oldest.TryGetComponent(out NetworkObject netObj))
+            {
+                netObj.Despawn();
+            }
+            else
+            {
+                Destroy(oldest);
+            }
+        }
     }
 
     public PlayerCombat pc;
