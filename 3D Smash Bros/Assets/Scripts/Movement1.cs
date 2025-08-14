@@ -31,6 +31,12 @@ public class Movement1 : NetworkBehaviour
 
     private Queue<GameObject> spawnedObjects = new Queue<GameObject>();
 
+    [SerializeField] private float dashForce = 50f;
+    [SerializeField] private float dashDuration = 0.2f;
+    [SerializeField] private float dashCooldown = 1f;
+    private bool isDashing = false;
+    private float lastDashTime = -999f;
+
 
     private IEnumerator WaitForGameUI()
     {
@@ -182,8 +188,55 @@ public class Movement1 : NetworkBehaviour
             pc.animator.SetTrigger("CylinderLodged");
         }
 
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            DashForward();
 
+        }
     }
+
+
+    public void DashForward()
+    {
+        if (!IsOwner || isDashing || Time.time < lastDashTime + dashCooldown)
+            return;
+        pc.animator.SetTrigger("Dash");
+        
+        StartCoroutine(DashCoroutine());
+        
+    }
+
+    private IEnumerator DashCoroutine()
+    {
+        isDashing = true;
+        lastDashTime = Time.time;
+
+        Vector3 dashDirection = cameraTransform.forward;
+        dashDirection.Normalize();
+
+        // Ha lefelé néz, ne menjen le
+        if (dashDirection.y < 0f)
+            dashDirection.y = 0f;
+
+        float startTime = Time.time;
+
+        rb.useGravity = false;
+
+        while (Time.time < startTime + dashDuration)
+        {
+            FaceCameraDirection(); // minden frame-ben igazítja az irányt
+            rb.linearVelocity = dashDirection * dashForce;
+            yield return null;
+        }
+
+        rb.useGravity = true;
+        rb.linearVelocity = Vector3.zero;
+
+        isDashing = false;
+    }
+
+
+
     void FixedUpdate()
     {
         // Apply movement using Rigidbody
@@ -248,10 +301,13 @@ public class Movement1 : NetworkBehaviour
     void FaceCameraDirection()
     {
         Vector3 cameraForward = cameraTransform.forward;
-        cameraForward.y = 0f; // Keep only horizontal rotation
-        if (cameraForward.sqrMagnitude > 0.001f)
+
+        // Csak a horizontális irányt vegyük, de úgy hogy tényleg számítson a hátrafelé nézés
+        Vector3 flatForward = new Vector3(cameraForward.x, 0f, cameraForward.z).normalized;
+
+        if (flatForward.sqrMagnitude > 0.001f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
+            Quaternion targetRotation = Quaternion.LookRotation(flatForward);
             transform.rotation = targetRotation;
         }
     }

@@ -757,7 +757,7 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  groundCheckDistance: 1.1
+  groundCheckDistance: 0.4
   cameraTransform: {fileID: 6406004041400770044}
   cooldownImage: {fileID: 0}
   QcooldownImage: {fileID: 0}
@@ -768,6 +768,9 @@ MonoBehaviour:
   terrainLayer:
     serializedVersion: 2
     m_Bits: 512
+  dashForce: 80
+  dashDuration: 0.2
+  dashCooldown: 1
   pc: {fileID: 8337604964979138523}
 --- !u!114 &8337604964979138523
 MonoBehaviour:
