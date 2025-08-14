@@ -201,7 +201,7 @@ public class Movement1 : NetworkBehaviour
         if (!IsOwner || isDashing || Time.time < lastDashTime + dashCooldown)
             return;
         pc.animator.SetTrigger("Dash");
-        
+
         StartCoroutine(DashCoroutine());
         
     }
@@ -214,7 +214,6 @@ public class Movement1 : NetworkBehaviour
         Vector3 dashDirection = cameraTransform.forward;
         dashDirection.Normalize();
 
-        // Ha lefelé néz, ne menjen le
         if (dashDirection.y < 0f)
             dashDirection.y = 0f;
 
@@ -222,9 +221,22 @@ public class Movement1 : NetworkBehaviour
 
         rb.useGravity = false;
 
+        // ide tesszük: mely ellenfelek kapták már meg a hitet
+        HashSet<PlayerCombat> hitEnemies = new HashSet<PlayerCombat>();
+
         while (Time.time < startTime + dashDuration)
         {
-            FaceCameraDirection(); // minden frame-ben igazítja az irányt
+            FaceCameraDirection();
+
+            foreach (PlayerCombat enemy in pc.playersInside)
+            {
+                if (enemy != null && !hitEnemies.Contains(enemy))
+                {
+                    enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
+                    hitEnemies.Add(enemy); // most már nem fogja többször meghívni
+                }
+            }
+
             rb.linearVelocity = dashDirection * dashForce;
             yield return null;
         }
