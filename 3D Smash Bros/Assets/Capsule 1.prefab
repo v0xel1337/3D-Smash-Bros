@@ -769,8 +769,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   dashForce: 80
-  dashDuration: 0.2
+  dashDuration: 0.3
   dashCooldown: 1
+  qCooldownDelay: 5
   pc: {fileID: 8337604964979138523}
 --- !u!114 &8337604964979138523
 MonoBehaviour:

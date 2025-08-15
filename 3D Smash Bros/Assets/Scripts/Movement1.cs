@@ -36,7 +36,8 @@ public class Movement1 : NetworkBehaviour
     [SerializeField] private float dashCooldown = 1f;
     private bool isDashing = false;
     private float lastDashTime = -999f;
-
+    private float qCooldownTimer = 0f;
+    public float qCooldownDelay = 5f;
 
     private IEnumerator WaitForGameUI()
     {
@@ -80,6 +81,12 @@ public class Movement1 : NetworkBehaviour
 
         StartCoroutine(WaitForGameUI());
     }
+
+    private void Start()
+    {
+        qCooldownTimer = qCooldownDelay;
+    }
+
 
     void Update()
     {
@@ -188,10 +195,20 @@ public class Movement1 : NetworkBehaviour
             pc.animator.SetTrigger("CylinderLodged");
         }
 
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            DashForward();
 
+
+        if (qCooldownTimer < qCooldownDelay)
+        {
+            qCooldownTimer += Time.deltaTime;
+            QcooldownImage.fillAmount = qCooldownTimer / qCooldownDelay;
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                DashForward();
+                qCooldownTimer = 0;
+            }
         }
     }
 
