@@ -772,6 +772,10 @@ MonoBehaviour:
   dashDuration: 0.3
   dashCooldown: 1
   qCooldownDelay: 5
+  projectilePrefab: {fileID: 3992648911700814666, guid: 8a09e450133e7a546b6650a0f84da102,
+    type: 3}
+  firePoint: {fileID: 302476910226810392}
+  shootForce: 20
   pc: {fileID: 8337604964979138523}
 --- !u!114 &8337604964979138523
 MonoBehaviour:

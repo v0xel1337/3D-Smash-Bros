@@ -14,6 +14,9 @@ public class PunchAnimationEvents1 : MonoBehaviour
             case "CylinderLodged":
                 movementScript.CylinderLodged();
                 break;
+            case "Shoot":
+                movementScript.OnClick();
+                break;
         }
     }
 

@@ -39,6 +39,12 @@ public class Movement1 : NetworkBehaviour
     private float qCooldownTimer = 0f;
     public float qCooldownDelay = 5f;
 
+
+    public GameObject projectilePrefab; // A lövedék prefab (pl. egy kis gömb rigidbody-val)
+    public Transform firePoint; // Innen lövi ki (pl. a kamera vagy fegyver eleje)
+    public float shootForce = 20f;
+    private Rigidbody lastProjectileRb;
+
     private IEnumerator WaitForGameUI()
     {
         // Várd meg, amíg a GameUI.Instance nem null
@@ -195,7 +201,16 @@ public class Movement1 : NetworkBehaviour
             pc.animator.SetTrigger("CylinderLodged");
         }
 
+        if (Input.GetMouseButtonDown(0))
+        {
+            FaceCameraDirection();
+            pc.animator.SetTrigger("Shoot");
+        }
 
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            EnableGravityOnLastProjectile();
+        }
 
         if (qCooldownTimer < qCooldownDelay)
         {
@@ -284,6 +299,30 @@ public class Movement1 : NetworkBehaviour
             {
                 enemy.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
             }
+        }
+    }
+
+    public void OnClick()
+    {
+        // Lövedék példányosítása a firePoint pozíciójából
+        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+        Rigidbody rb = projectile.GetComponent<Rigidbody>();
+
+        rb.useGravity = false; // kezdetben nincs gravitáció
+
+        // A kamera előre irányába lövi ki
+        Vector3 shootDirection = _camera.transform.forward;
+        rb.velocity = shootDirection * shootForce;
+
+        // eltároljuk, hogy erre majd hasson a C gomb
+        lastProjectileRb = rb;
+    }
+
+    void EnableGravityOnLastProjectile()
+    {
+        if (lastProjectileRb != null)
+        {
+            lastProjectileRb.useGravity = true;
         }
     }
 
