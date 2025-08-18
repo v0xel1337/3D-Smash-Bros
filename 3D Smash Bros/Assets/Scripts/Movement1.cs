@@ -304,17 +304,26 @@ public class Movement1 : NetworkBehaviour
 
     public void OnClick()
     {
-        // Lövedék példányosítása a firePoint pozíciójából
-        GameObject projectile = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+        if (!IsOwner) return;
+
+        // Csak szervernek szólunk, hogy spawnolja le
+        Vector3 shootDirection = _camera.transform.forward;
+        ShootProjectileServerRpc(firePoint.position, shootDirection);
+    }
+
+    [ServerRpc]
+    private void ShootProjectileServerRpc(Vector3 spawnPosition, Vector3 shootDirection)
+    {
+        GameObject projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
 
-        rb.useGravity = false; // kezdetben nincs gravitáció
+        rb.useGravity = false;
+        rb.linearVelocity = shootDirection * shootForce;
 
-        // A kamera előre irányába lövi ki
-        Vector3 shootDirection = _camera.transform.forward;
-        rb.velocity = shootDirection * shootForce;
+        // fontos: network spawn
+        projectile.GetComponent<NetworkObject>().Spawn(true);
 
-        // eltároljuk, hogy erre majd hasson a C gomb
+        // opcionálisan tárold el a szerver oldalon
         lastProjectileRb = rb;
     }
 
