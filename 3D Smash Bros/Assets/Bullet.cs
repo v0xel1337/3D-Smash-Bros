@@ -5,33 +5,28 @@ using UnityEngine;
 public class Bullet : NetworkBehaviour
 {
     public List<PlayerCombat> playersInside = new List<PlayerCombat>();
-    public GameObject ExplosionCollider;
+    public Animator animator;
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
+        // Csak a szerver figyeli az ütközést
+        if (!IsServer) return;
+
         PlayerCombat pcTemp = other.GetComponent<PlayerCombat>();
-        
-        if (pcTemp || other.gameObject.tag == "Terrain")
+
+        if (pcTemp != null || other.CompareTag("Terrain"))
         {
-            ExplosionCollider.SetActive(true);
+
             if (pcTemp != null)
             {
                 playersInside.Add(pcTemp);
             }
+
             for (int i = 0; i < playersInside.Count; i++)
             {
                 Debug.Log(playersInside[i].transform.name);
             }
-
-            RequestDespawnServerRpc();
+            animator.Play("Explosion");
         }
-      
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-
-    private void RequestDespawnServerRpc()
-    {
-        NetworkObject.Despawn();
     }
 }

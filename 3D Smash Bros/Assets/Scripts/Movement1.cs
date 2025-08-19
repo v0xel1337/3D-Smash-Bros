@@ -318,12 +318,10 @@ public class Movement1 : NetworkBehaviour
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
 
         rb.useGravity = false;
-        rb.linearVelocity = shootDirection * shootForce;
+        rb.linearVelocity = shootDirection.normalized * shootForce;
 
-        // fontos: network spawn
         projectile.GetComponent<NetworkObject>().Spawn(true);
 
-        // opcionálisan tárold el a szerver oldalon
         lastProjectileRb = rb;
     }
 
