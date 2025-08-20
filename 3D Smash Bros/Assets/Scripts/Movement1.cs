@@ -301,13 +301,38 @@ public class Movement1 : NetworkBehaviour
             }
         }
     }
-
     public void OnClick()
     {
         if (!IsOwner) return;
 
-        // Csak szervernek szólunk, hogy spawnolja le
-        Vector3 shootDirection = _camera.transform.forward;
+        Ray ray = new Ray(_camera.transform.position, _camera.transform.forward);
+        Vector3 shootDirection;
+
+        // Összes találat
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
+
+        // Rendezés távolság szerint (RaycastAll nem mindig garantálja a sorrendet)
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        RaycastHit? validHit = null;
+        foreach (var h in hits)
+        {
+            if (h.distance > 5f) // csak ha 5 méternél messzebb van
+            {
+                validHit = h;
+                break;
+            }
+        }
+
+        if (validHit.HasValue)
+        {
+            shootDirection = (validHit.Value.point - firePoint.position).normalized;
+        }
+        else
+        {
+            shootDirection = _camera.transform.forward;
+        }
+
         ShootProjectileServerRpc(firePoint.position, shootDirection);
     }
 

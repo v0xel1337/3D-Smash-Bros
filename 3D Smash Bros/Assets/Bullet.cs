@@ -29,4 +29,9 @@ public class Bullet : NetworkBehaviour
             animator.Play("Explosion");
         }
     }
+
+    public void DespawnObject()
+    {
+        NetworkObject.Despawn(true);
+    }
 }
