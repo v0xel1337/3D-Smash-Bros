@@ -341,7 +341,9 @@ public class Movement1 : NetworkBehaviour
     {
         GameObject projectile = Instantiate(projectilePrefab, spawnPosition, Quaternion.identity);
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
+        Bullet bullet = projectile.GetComponent<Bullet>();
 
+        bullet.bulletShooter = pc;
         rb.useGravity = false;
         rb.linearVelocity = shootDirection.normalized * shootForce;
 

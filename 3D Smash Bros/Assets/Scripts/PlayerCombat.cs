@@ -144,7 +144,7 @@ public class PlayerCombat : NetworkBehaviour
 
         rb.linearVelocity = Vector3.zero;
         rb.AddForce(finalForce, ForceMode.VelocityChange);
-
+        Debug.Log("hátra");
         UpdatePercentUI(); // ha akarod, ClientRpc-ként is lehet később UI frissítés
     }
 
