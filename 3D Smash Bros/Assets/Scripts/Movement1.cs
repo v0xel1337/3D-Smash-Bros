@@ -33,11 +33,17 @@ public class Movement1 : NetworkBehaviour
 
     [SerializeField] private float dashForce = 50f;
     [SerializeField] private float dashDuration = 0.2f;
-    [SerializeField] private float dashCooldown = 1f;
     private bool isDashing = false;
     private float lastDashTime = -999f;
     private float qCooldownTimer = 0f;
     public float qCooldownDelay = 5f;
+
+
+    private float eCooldownTimer = 0f;
+    public float eCooldownDelay = 5f;
+    public LineRenderer lineRenderer;  // a lézersugár vizuálja
+    public float maxDistance = 50f;
+    public float damagePerSecond = 20f;
 
 
     public GameObject projectilePrefab; // A lövedék prefab (pl. egy kis gömb rigidbody-val)
@@ -91,6 +97,7 @@ public class Movement1 : NetworkBehaviour
     private void Start()
     {
         qCooldownTimer = qCooldownDelay;
+        eCooldownTimer = eCooldownDelay;
     }
 
 
@@ -225,12 +232,50 @@ public class Movement1 : NetworkBehaviour
                 qCooldownTimer = 0;
             }
         }
+
+        if (eCooldownTimer < eCooldownDelay)
+        {
+            eCooldownTimer += Time.deltaTime;
+            EcooldownImage.fillAmount = eCooldownTimer / eCooldownDelay;
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                FaceCameraDirection();
+                pc.animator.SetTrigger("ShootE");
+                eCooldownTimer = 0;
+            }
+        }
     }
 
 
+    public void AttackE()
+    {
+        // képernyő közepéből induló ray
+        Ray ray = _camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+
+        Vector3 targetPoint;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, terrainLayer))
+        {
+            // ha ütközött valamihez, akkor a találati pont
+            targetPoint = hit.point;
+        }
+        else
+        {
+            // ha nincs ütközés, akkor a ray maxDistance távolságán lévő pont
+            targetPoint = ray.origin + ray.direction * maxDistance;
+        }
+
+        // LineRenderer kezdőpont = fegyver vége, végpont = targetPoint
+        lineRenderer.SetPosition(0, firePoint.position);
+        lineRenderer.SetPosition(1, targetPoint);
+    }
+
     public void DashForward()
     {
-        if (!IsOwner || isDashing || Time.time < lastDashTime + dashCooldown)
+        if (!IsOwner || isDashing)
             return;
         pc.animator.SetTrigger("Dash");
 

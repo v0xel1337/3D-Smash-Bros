@@ -17,6 +17,9 @@ public class PunchAnimationEvents1 : MonoBehaviour
             case "Shoot":
                 movementScript.OnClick();
                 break;
+            case "ShootE":
+                movementScript.AttackE();
+                break;
         }
     }
 
