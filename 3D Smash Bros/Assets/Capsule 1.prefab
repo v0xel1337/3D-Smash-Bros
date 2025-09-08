@@ -775,13 +775,15 @@ MonoBehaviour:
   lineRenderer: {fileID: 8256453749587486713}
   maxDistance: 50
   damagePerSecond: 20
-  hitLayers:
-    serializedVersion: 2
-    m_Bits: 0
   projectilePrefab: {fileID: 3992648911700814666, guid: 8a09e450133e7a546b6650a0f84da102,
     type: 3}
   firePoint: {fileID: 302476910226810392}
+  firePoint2: {fileID: 86026645811445988}
   shootForce: 20
+  smallBeamDuration: 1
+  largeBeamDuration: 2
+  smallBeamWidth: 0.05
+  largeBeamWidth: 1
   pc: {fileID: 8337604964979138523}
 --- !u!114 &8337604964979138523
 MonoBehaviour:
@@ -2049,8 +2051,8 @@ LineRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8492769685162702848}
   m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 0
@@ -2095,8 +2097,8 @@ LineRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 0.009869022
+        time: 0.018241882
+        value: 0.12690394
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -2133,7 +2135,7 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0

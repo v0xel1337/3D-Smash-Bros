@@ -43,11 +43,14 @@ public class Movement1 : NetworkBehaviour
     public float eCooldownDelay = 5f;
     public LineRenderer lineRenderer;  // a lézersugár vizuálja
     public float maxDistance = 50f;
-    public float damagePerSecond = 20f;
+    [SerializeField] private float damageInterval = 1f; // minden 1 másodpercben
+    [SerializeField] private int beamDamage = 10;       // mennyit sebez
+    private float nextDamageTime = 0f;
 
 
     public GameObject projectilePrefab; // A lövedék prefab (pl. egy kis gömb rigidbody-val)
     public Transform firePoint; // Innen lövi ki (pl. a kamera vagy fegyver eleje)
+    public Transform firePoint2; // A karakter közepe
     public float shootForce = 20f;
     private Rigidbody lastProjectileRb;
 
@@ -249,28 +252,97 @@ public class Movement1 : NetworkBehaviour
         }
     }
 
+    [ServerRpc]
+    private void StartBeamServerRpc(ServerRpcParams rpcParams = default)
+    {
+        StartCoroutine(AttackSequence());
+    }
 
     public void AttackE()
     {
+        if (IsOwner)
+            StartBeamServerRpc();
+    }
+
+    [Header("Beam Settings")]
+    [SerializeField] private float smallBeamDuration = 1f;
+    [SerializeField] private float largeBeamDuration = 2f;
+    [SerializeField] private float smallBeamWidth = 0.05f;
+    [SerializeField] private float largeBeamWidth = 0.3f;
+    private IEnumerator AttackSequence()
+    {
+        // Kis sugár (1s)
+        lineRenderer.enabled = true;
+        lineRenderer.startWidth = smallBeamWidth;
+        lineRenderer.endWidth = smallBeamWidth;
+
+        float elapsed = 0f;
+        while (elapsed < smallBeamDuration)
+        {
+            elapsed += Time.deltaTime;
+            UpdateBeam();
+            yield return null;
+        }
+
+        // Nagy sugár (2s)
+        lineRenderer.startWidth = largeBeamWidth;
+        lineRenderer.endWidth = largeBeamWidth;
+
+        Color transparentWhite = new Color(1f, 1f, 1f, 0.5f);
+        lineRenderer.material.color = transparentWhite;
+
+        elapsed = 0f;
+        while (elapsed < largeBeamDuration)
+        {
+            elapsed += Time.deltaTime;
+            UpdateBeam();
+            ApplyBeamDamage(); // sebzés alkalmazása
+            yield return null;
+        }
+
+        // Kikapcsolás
+        lineRenderer.enabled = false;
+    }
+    private void UpdateBeam()
+    {
         // képernyő közepéből induló ray
         Ray ray = _camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-
         Vector3 targetPoint;
 
         if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, terrainLayer))
         {
-            // ha ütközött valamihez, akkor a találati pont
             targetPoint = hit.point;
         }
         else
         {
-            // ha nincs ütközés, akkor a ray maxDistance távolságán lévő pont
             targetPoint = ray.origin + ray.direction * maxDistance;
         }
 
-        // LineRenderer kezdőpont = fegyver vége, végpont = targetPoint
-        lineRenderer.SetPosition(0, firePoint.position);
+        // LineRenderer pozíciók
+        lineRenderer.SetPosition(0, firePoint2.position);
         lineRenderer.SetPosition(1, targetPoint);
+    }
+
+    private void ApplyBeamDamage()
+    {
+        if (Time.time < nextDamageTime) return; // még nem telt le az idő
+
+        Ray ray = _camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        float beamRadius = lineRenderer.startWidth / 2f;
+
+        // SphereCastAll a sugár szélességével
+        RaycastHit[] hits = Physics.SphereCastAll(ray, beamRadius, maxDistance);
+
+        foreach (RaycastHit hit in hits)
+        {
+            var enemy = hit.collider.GetComponent<PlayerCombat>();
+            if (enemy != null && enemy != pc) // <<< saját magadat ne sebezze
+            {
+                enemy.PlayGetHitAnimationServerRpc(beamDamage, 0, transform.position, OwnerClientId);
+            }
+        }
+
+        nextDamageTime = Time.time + damageInterval; // következő sebzés időpontja
     }
 
     public void DashForward()
