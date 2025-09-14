@@ -252,98 +252,14 @@ public class Movement1 : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    private void StartBeamServerRpc(ServerRpcParams rpcParams = default)
-    {
-        StartCoroutine(AttackSequence());
-    }
-
-    public void AttackE()
-    {
-        if (IsOwner)
-            StartBeamServerRpc();
-    }
+ 
 
     [Header("Beam Settings")]
     [SerializeField] private float smallBeamDuration = 1f;
     [SerializeField] private float largeBeamDuration = 2f;
     [SerializeField] private float smallBeamWidth = 0.05f;
     [SerializeField] private float largeBeamWidth = 0.3f;
-    private IEnumerator AttackSequence()
-    {
-        // Kis sugár (1s)
-        lineRenderer.enabled = true;
-        lineRenderer.startWidth = smallBeamWidth;
-        lineRenderer.endWidth = smallBeamWidth;
-
-        float elapsed = 0f;
-        while (elapsed < smallBeamDuration)
-        {
-            elapsed += Time.deltaTime;
-            UpdateBeam();
-            yield return null;
-        }
-
-        // Nagy sugár (2s)
-        lineRenderer.startWidth = largeBeamWidth;
-        lineRenderer.endWidth = largeBeamWidth;
-
-        Color transparentWhite = new Color(1f, 1f, 1f, 0.5f);
-        lineRenderer.material.color = transparentWhite;
-
-        elapsed = 0f;
-        while (elapsed < largeBeamDuration)
-        {
-            elapsed += Time.deltaTime;
-            UpdateBeam();
-            ApplyBeamDamage(); // sebzés alkalmazása
-            yield return null;
-        }
-
-        // Kikapcsolás
-        lineRenderer.enabled = false;
-    }
-    private void UpdateBeam()
-    {
-        // képernyő közepéből induló ray
-        Ray ray = _camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        Vector3 targetPoint;
-
-        if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, terrainLayer))
-        {
-            targetPoint = hit.point;
-        }
-        else
-        {
-            targetPoint = ray.origin + ray.direction * maxDistance;
-        }
-
-        // LineRenderer pozíciók
-        lineRenderer.SetPosition(0, firePoint2.position);
-        lineRenderer.SetPosition(1, targetPoint);
-    }
-
-    private void ApplyBeamDamage()
-    {
-        if (Time.time < nextDamageTime) return; // még nem telt le az idő
-
-        Ray ray = _camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        float beamRadius = lineRenderer.startWidth / 2f;
-
-        // SphereCastAll a sugár szélességével
-        RaycastHit[] hits = Physics.SphereCastAll(ray, beamRadius, maxDistance);
-
-        foreach (RaycastHit hit in hits)
-        {
-            var enemy = hit.collider.GetComponent<PlayerCombat>();
-            if (enemy != null && enemy != pc) // <<< saját magadat ne sebezze
-            {
-                enemy.PlayGetHitAnimationServerRpc(beamDamage, 0, transform.position, OwnerClientId);
-            }
-        }
-
-        nextDamageTime = Time.time + damageInterval; // következő sebzés időpontja
-    }
+   
 
     public void DashForward()
     {
@@ -354,6 +270,113 @@ public class Movement1 : NetworkBehaviour
         StartCoroutine(DashCoroutine());
         
     }
+
+    public void AttackE()
+    {
+        if (!IsOwner) return;
+        StartCoroutine(AttackSequenceOwner());
+    }
+
+    private IEnumerator AttackSequenceOwner()
+    {
+        float elapsed = 0f;
+
+        // Kis sugár (1s)
+        while (elapsed < smallBeamDuration)
+        {
+            elapsed += Time.deltaTime;
+
+            SendBeamUpdate(smallBeamWidth, new Color(1f, 1f, 1f, 1f));
+            yield return null;
+        }
+
+        // Nagy sugár (2s)
+        elapsed = 0f;
+        while (elapsed < largeBeamDuration)
+        {
+            elapsed += Time.deltaTime;
+
+            SendBeamUpdate(largeBeamWidth, new Color(1f, 1f, 1f, 0.5f));
+            yield return null;
+        }
+
+        // Leállítás
+        StopBeamServerRpc();
+    }
+
+    private void SendBeamUpdate(float width, Color color)
+    {
+        // sugár irány kiszámítása
+        Ray ray = _camera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        Vector3 targetPoint;
+
+        if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, terrainLayer))
+            targetPoint = hit.point;
+        else
+            targetPoint = ray.origin + ray.direction * maxDistance;
+
+        // szervernek továbbítjuk a sugár adatokat
+        UpdateBeamServerRpc(firePoint2.position, targetPoint, width, color);
+    }
+
+    [ServerRpc]
+    private void UpdateBeamServerRpc(Vector3 startPos, Vector3 targetPos, float width, Color color, ServerRpcParams rpcParams = default)
+    {
+        // Minden kliensnek küldjük
+        UpdateBeamClientRpc(startPos, targetPos, width, color);
+
+        // Sebzés számítás csak szerveren
+        ApplyBeamDamage(startPos, targetPos, width);
+    }
+
+    [ClientRpc]
+    private void UpdateBeamClientRpc(Vector3 startPos, Vector3 targetPos, float width, Color color, ClientRpcParams rpcParams = default)
+    {
+        if (!lineRenderer.enabled)
+            lineRenderer.enabled = true;
+
+        lineRenderer.startWidth = width;
+        lineRenderer.endWidth = width;
+        lineRenderer.material.color = color;
+
+        lineRenderer.SetPosition(0, startPos);
+        lineRenderer.SetPosition(1, targetPos);
+    }
+
+    [ServerRpc]
+    private void StopBeamServerRpc(ServerRpcParams rpcParams = default)
+    {
+        StopBeamClientRpc();
+    }
+
+    [ClientRpc]
+    private void StopBeamClientRpc(ClientRpcParams rpcParams = default)
+    {
+        lineRenderer.enabled = false;
+    }
+
+    private void ApplyBeamDamage(Vector3 startPos, Vector3 targetPos, float width)
+    {
+        if (Time.time < nextDamageTime) return;
+
+        Vector3 direction = (targetPos - startPos).normalized;
+        float distance = Vector3.Distance(startPos, targetPos);
+        float beamRadius = width / 2f;
+
+        RaycastHit[] hits = Physics.SphereCastAll(startPos, beamRadius, direction, distance);
+
+        foreach (RaycastHit hit in hits)
+        {
+            var enemy = hit.collider.GetComponent<PlayerCombat>();
+            if (enemy != null && enemy != pc)
+            {
+                enemy.PlayGetHitAnimationServerRpc(beamDamage, 0, transform.position, OwnerClientId);
+            }
+        }
+
+        nextDamageTime = Time.time + damageInterval;
+    }
+
 
     private IEnumerator DashCoroutine()
     {
