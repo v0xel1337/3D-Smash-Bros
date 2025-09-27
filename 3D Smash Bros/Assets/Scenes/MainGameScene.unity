@@ -10824,21 +10824,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2637273890871053252}
   m_CullTransparentMesh: 1
---- !u!114 &755828512640790226
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6560074116113066557}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c731c81764a2c4743ae1f8bb1125fa0d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cooldownImage: {fileID: 1506340288143069820}
-  cooldownTime: 5
-  keyToPress: 114
 --- !u!1 &800400253514181786
 GameObject:
   m_ObjectHideFlags: 0
@@ -12207,7 +12192,6 @@ GameObject:
   - component: {fileID: 8489601986282421319}
   - component: {fileID: 4168287535156955951}
   - component: {fileID: 2601303604456230558}
-  - component: {fileID: 755828512640790226}
   m_Layer: 5
   m_Name: Blue Sphere (3)
   m_TagString: Untagged
@@ -12388,6 +12372,7 @@ MonoBehaviour:
   clickCooldownImage: {fileID: 4009630759862431119}
   QCooldownImage: {fileID: 3262022875204928762}
   ECooldownImage: {fileID: 249999054323254979}
+  RCooldownImage: {fileID: 1506340288143069820}
   clickGreenCooldownImage: {fileID: 8465804453925409316}
   FightEnd: {fileID: 1251508434}
   winObject: {fileID: 1152231863}

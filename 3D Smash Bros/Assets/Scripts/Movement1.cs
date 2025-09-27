@@ -25,6 +25,7 @@ public class Movement1 : NetworkBehaviour
     public Image cooldownImage; // ide húzod be az UI Image-t
     public Image QcooldownImage;
     public Image EcooldownImage;
+    public Image RcooldownImage;
     public Image cooldownGreenImage;
     public GameObject CylinderObject;
     public LayerMask terrainLayer; // Csak Terrain-hez
@@ -37,6 +38,14 @@ public class Movement1 : NetworkBehaviour
     private float lastDashTime = -999f;
     private float qCooldownTimer = 0f;
     public float qCooldownDelay = 5f;
+
+    private float rCooldownTimer = 0f;
+    public float rCooldownDelay = 10f;
+    private float rReverseTimer = 0f;
+    public float rReverseDelay = 5f;
+    private Vector3 rTargetScale  = new Vector3(100f, 100f, 70f);
+    public Transform Shockwave;
+    private bool rIsReversed = false;
 
 
     private float eCooldownTimer = 0f;
@@ -65,6 +74,7 @@ public class Movement1 : NetworkBehaviour
         cooldownImage = GameUI.Instance.clickCooldownImage;
         QcooldownImage = GameUI.Instance.QCooldownImage;
         EcooldownImage = GameUI.Instance.ECooldownImage;
+        RcooldownImage = GameUI.Instance.RCooldownImage;
         cooldownGreenImage = GameUI.Instance.clickGreenCooldownImage;
         pc.ui = GameUI.Instance.healthUI;
 
@@ -101,6 +111,8 @@ public class Movement1 : NetworkBehaviour
     {
         qCooldownTimer = qCooldownDelay;
         eCooldownTimer = eCooldownDelay;
+        rCooldownTimer = rCooldownDelay;
+        rReverseTimer = rReverseDelay;
     }
 
 
@@ -248,6 +260,46 @@ public class Movement1 : NetworkBehaviour
                 FaceCameraDirection();
                 pc.animator.SetTrigger("ShootE");
                 eCooldownTimer = 0;
+            }
+        }
+
+        if (rCooldownTimer < rCooldownDelay)
+        {
+            rCooldownTimer += Time.deltaTime;
+            
+            Debug.Log("Rverers " + rReverseTimer);
+
+            RcooldownImage.fillAmount = rCooldownTimer / rCooldownDelay;
+            if (rReverseTimer < rReverseDelay)
+            {
+                rReverseTimer += Time.deltaTime;
+                Shockwave.transform.localScale = Vector3.Lerp(Shockwave.transform.localScale, rTargetScale, Time.deltaTime * 0.5f);
+
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    rIsReversed = !rIsReversed;
+                    if (rIsReversed)
+                        rTargetScale = new Vector3(30f, 30f, 20f);
+                    else
+                        rTargetScale = new Vector3(100f, 100f, 70f);
+                }
+            }
+            else
+            {
+                Shockwave.gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                pc.animator.SetTrigger("Shockwave");
+                rTargetScale = new Vector3(100f, 100f, 70f);
+                rIsReversed = false;
+                Shockwave.transform.localScale = new Vector3(30f, 30f, 20f);
+                Shockwave.gameObject.SetActive(true);
+                rCooldownTimer = 0;
+                rReverseTimer = 0;
             }
         }
     }
