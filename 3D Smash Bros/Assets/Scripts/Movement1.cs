@@ -44,7 +44,7 @@ public class Movement1 : NetworkBehaviour
     private float rReverseTimer = 0f;
     public float rReverseDelay = 5f;
 
-    public static bool rIsReversed = false;
+    public bool rIsReversed = false;
 
 
     private float eCooldownTimer = 0f;
@@ -112,7 +112,7 @@ public class Movement1 : NetworkBehaviour
         eCooldownTimer = eCooldownDelay;
         rCooldownTimer = rCooldownDelay;
         rReverseTimer = rReverseDelay;
-        InvokeRepeating(nameof(SpawnShockwaveServerRPC), 0f, 3f);
+        InvokeRepeating(nameof(SpawnShockwaveServerRPC), 1f, 2f);
     }
     public GameObject ShockwavePrefab;
     public Transform ShockwaveSpawnPoint;
@@ -122,12 +122,9 @@ public class Movement1 : NetworkBehaviour
     {
         if (!IsOwner) return;
         GameObject shockwave = Instantiate(ShockwavePrefab);
-        shockwave.transform.SetParent(ShockwaveSpawnPoint, false);
+        shockwave.GetComponent<Shockwave>().movement = this;
         var netObj = shockwave.GetComponent<NetworkObject>();
         netObj.Spawn(true); 
-        netObj.TrySetParent(ShockwaveSpawnPoint, false);
-
-        
         //shockwave.transform.localPosition = Vector3.zero;
         //shockwave.transform.localRotation = Quaternion.identity;
     }
@@ -280,40 +277,12 @@ public class Movement1 : NetworkBehaviour
             }
         }
 
-        if (rCooldownTimer < rCooldownDelay)
+
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            rCooldownTimer += Time.deltaTime;
-            
-            Debug.Log("Rverers " + rReverseTimer);
-
-            RcooldownImage.fillAmount = rCooldownTimer / rCooldownDelay;
-            if (rReverseTimer < rReverseDelay)
-            {
-                rReverseTimer += Time.deltaTime;
-
-                if (Input.GetKeyDown(KeyCode.R))
-                {
-                    rIsReversed = !rIsReversed;
-
-                }
-            }
-            else
-            {
-                //Shockwave.gameObject.SetActive(false);
-            }
-        }
-        else
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                pc.animator.SetTrigger("Shockwave");
-                //rTargetScale = new Vector3(100f, 100f, 70f);
-                rIsReversed = false;
-                //Shockwave.transform.localScale = new Vector3(30f, 30f, 20f);
-               // Shockwave.gameObject.SetActive(true);
-                rCooldownTimer = 0;
-                rReverseTimer = 0;
-            }
+            pc.animator.SetTrigger("Shockwave");
+            //rTargetScale = new Vector3(100f, 100f, 70f);
+            rIsReversed = !rIsReversed;
         }
     }
 
