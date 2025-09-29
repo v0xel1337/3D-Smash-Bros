@@ -43,9 +43,8 @@ public class Movement1 : NetworkBehaviour
     public float rCooldownDelay = 10f;
     private float rReverseTimer = 0f;
     public float rReverseDelay = 5f;
-    private Vector3 rTargetScale  = new Vector3(100f, 100f, 70f);
-    public Transform Shockwave;
-    private bool rIsReversed = false;
+
+    public static bool rIsReversed = false;
 
 
     private float eCooldownTimer = 0f;
@@ -113,6 +112,24 @@ public class Movement1 : NetworkBehaviour
         eCooldownTimer = eCooldownDelay;
         rCooldownTimer = rCooldownDelay;
         rReverseTimer = rReverseDelay;
+        InvokeRepeating(nameof(SpawnShockwaveServerRPC), 0f, 3f);
+    }
+    public GameObject ShockwavePrefab;
+    public Transform ShockwaveSpawnPoint;
+
+    [ServerRpc]
+    void SpawnShockwaveServerRPC()
+    {
+        if (!IsOwner) return;
+        GameObject shockwave = Instantiate(ShockwavePrefab);
+        shockwave.transform.SetParent(ShockwaveSpawnPoint, false);
+        var netObj = shockwave.GetComponent<NetworkObject>();
+        netObj.Spawn(true); 
+        netObj.TrySetParent(ShockwaveSpawnPoint, false);
+
+        
+        //shockwave.transform.localPosition = Vector3.zero;
+        //shockwave.transform.localRotation = Quaternion.identity;
     }
 
 
@@ -273,20 +290,16 @@ public class Movement1 : NetworkBehaviour
             if (rReverseTimer < rReverseDelay)
             {
                 rReverseTimer += Time.deltaTime;
-                Shockwave.transform.localScale = Vector3.Lerp(Shockwave.transform.localScale, rTargetScale, Time.deltaTime * 0.5f);
 
                 if (Input.GetKeyDown(KeyCode.R))
                 {
                     rIsReversed = !rIsReversed;
-                    if (rIsReversed)
-                        rTargetScale = new Vector3(30f, 30f, 20f);
-                    else
-                        rTargetScale = new Vector3(100f, 100f, 70f);
+
                 }
             }
             else
             {
-                Shockwave.gameObject.SetActive(false);
+                //Shockwave.gameObject.SetActive(false);
             }
         }
         else
@@ -294,10 +307,10 @@ public class Movement1 : NetworkBehaviour
             if (Input.GetKeyDown(KeyCode.R))
             {
                 pc.animator.SetTrigger("Shockwave");
-                rTargetScale = new Vector3(100f, 100f, 70f);
+                //rTargetScale = new Vector3(100f, 100f, 70f);
                 rIsReversed = false;
-                Shockwave.transform.localScale = new Vector3(30f, 30f, 20f);
-                Shockwave.gameObject.SetActive(true);
+                //Shockwave.transform.localScale = new Vector3(30f, 30f, 20f);
+               // Shockwave.gameObject.SetActive(true);
                 rCooldownTimer = 0;
                 rReverseTimer = 0;
             }
