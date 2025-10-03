@@ -14,12 +14,13 @@ public class Shockwave : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        followTransform = GameObject.FindGameObjectWithTag("ShockwaveSpawn").transform;
         rTargetScale = bigScale;
     }
 
     void Update()
     {
+        if (!IsOwner)
+            return;
         if (movement.rIsReversed)
         {
             rTargetScale = smallScale;
@@ -43,5 +44,14 @@ public class Shockwave : NetworkBehaviour
 
         // pozíció követés
         transform.position = followTransform.position;
+    }
+
+    public void OnTriggerEnter(Collider other)
+    {
+        PlayerCombat pcTemp = other.GetComponent<PlayerCombat>();
+        if (pcTemp != null)
+        {
+            pcTemp.PlayGetHitAnimationServerRpc(10, 12, transform.position, OwnerClientId);
+        }
     }
 }

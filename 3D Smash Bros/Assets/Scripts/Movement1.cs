@@ -108,6 +108,9 @@ public class Movement1 : NetworkBehaviour
 
     private void Start()
     {
+        if (!IsOwner)
+            return;
+
         qCooldownTimer = qCooldownDelay;
         eCooldownTimer = eCooldownDelay;
         rCooldownTimer = rCooldownDelay;
@@ -120,11 +123,11 @@ public class Movement1 : NetworkBehaviour
     [ServerRpc]
     void SpawnShockwaveServerRPC()
     {
-        if (!IsOwner) return;
         GameObject shockwave = Instantiate(ShockwavePrefab);
         shockwave.GetComponent<Shockwave>().movement = this;
-        var netObj = shockwave.GetComponent<NetworkObject>();
-        netObj.Spawn(true); 
+        shockwave.GetComponent<Shockwave>().followTransform = ShockwaveSpawnPoint;
+        
+        shockwave.GetComponent<NetworkObject>().Spawn(true);
         //shockwave.transform.localPosition = Vector3.zero;
         //shockwave.transform.localRotation = Quaternion.identity;
     }
